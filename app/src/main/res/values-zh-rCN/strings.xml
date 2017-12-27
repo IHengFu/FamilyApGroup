@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">家庭智能组网</string>
+    <string name="action_settings">设置</string>
+    <string name="action_save">保存</string>
+    <string name="action_give_up">放弃</string>
+    <string name="action_exit">退出</string>
+    <string name="action_commit">提交</string>
+    <string name="action_operation">操作</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_retry">重试</string>
+    <string name="action_delete">删除</string>
+    <string name="action_add">添加</string>
+    <string name="action_continue">继续</string>
+
+    <string name="ask_retry">是否重试？</string>
+    <string name="ask_save_or_not">是否保存？</string>
+    <string name="house_choice">户型选择</string>
+
+    <!---->
+    <string name="wifi">路由器</string>
+    <string name="my_phone">本机</string>
+    <string name="client">设备</string>
+    <!--startactivity-->
+    <string name="cannot_connect_master">服务器无法联通？</string>
+    <string name="notice_init">初始化……</string>
+    <string name="notice_get_device">获取设备……</string>
+    <string name="notice_get_device_status">获取设备状态……</string>
+    <string name="notice_get_master">获取Master信息……</string>
+    <string name="notice_connect_wifi">前往连接Wi-Fi？</string>
+    <!--mainactivity-->
+    <string name="title_intensity_map">场强图</string>
+    <string name="action_optimize">优化</string>
+    <string name="action_channel_set">通道手动设置</string>
+    <string name="notice_wait_for_develop">待开发</string>
+    <string name="title_device_list">设备列表</string>
+    <string name="notice_download_data">数据加载中，请稍后……</string>
+</resources>

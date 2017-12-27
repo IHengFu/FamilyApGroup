@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <array name="house_style_name">
+        <item>base style</item>
+        <item>1room</item>
+        <item>2room-1</item>
+        <item>2room-2</item>
+        <item>3room-1</item>
+        <item>3room-2</item>
+        <item>4room-1</item>
+        <item>4room-2</item>
+    </array>
+    <array name="intensity">
+        <item>powerful</item>
+        <item>weak</item>
+    </array>
+
+    <string-array name="pathOfHouseStyle">
+        <item>house/house_base.json</item>
+        <item>house/house1.json</item>
+    </string-array>
+</resources>

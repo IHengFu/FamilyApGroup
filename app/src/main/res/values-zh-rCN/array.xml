@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <array name="house_style_name">
+        <item>标间</item>
+        <item>一居</item>
+        <item>二居-1</item>
+        <item>二居-2</item>
+        <item>三居-1</item>
+        <item>三居-2</item>
+        <item>四居-1</item>
+        <item>四居-2</item>
+    </array>
+    <array name="intensity">
+        <item>强</item>
+        <item>弱</item>
+    </array>
+    <string-array name="pathOfHouseStyle">
+        <item>house/house_base.json</item>
+        <item>house/house1.json</item>
+    </string-array>
+</resources>

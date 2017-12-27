@@ -1,0 +1,44 @@
+{
+  "areas" : [
+    {
+      "bottom" : 247,
+      "top" : 69,
+      "left" : 75,
+      "right" : 441
+    },
+    {
+      "bottom" : 247,
+      "top" : 69,
+      "left" : 465,
+      "right" : 901
+    },
+    {
+      "bottom" : 604,
+      "top" : 279,
+      "left" : 75,
+      "right" : 640
+    },
+    {
+      "bottom" : 604,
+      "top" : 279,
+      "left" : 658,
+      "right" : 899
+    },
+    {
+      "bottom" : 1150,
+      "top" : 621,
+      "left" : 75,
+      "right" : 500
+    },
+    {
+      "bottom" : 1150,
+      "top" : 621,
+      "left" : 522,
+      "right" : 899
+    }
+  ],
+  "width" : 6000,
+  "height" : 10000,
+  "background" : "house/house1.png",
+  "name":"一居户型"
+}

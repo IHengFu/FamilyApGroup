@@ -1,0 +1,19 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="wifiairscout.changhong.com.wifiairscout.ui.activity.MainActivity">
+    <item
+        android:id="@+id/action_optimize"
+        android:icon="@android:drawable/ic_popup_sync"
+        android:orderInCategory="100"
+        android:title="@string/action_optimize"
+        app:showAsAction="withText" />
+
+    <item
+        android:id="@+id/action_channel_set"
+        android:icon="@android:drawable/ic_menu_edit"
+        android:orderInCategory="100"
+        android:title="@string/action_channel_set"
+        app:showAsAction="collapseActionView"/>
+
+</menu>
