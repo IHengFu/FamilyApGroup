@@ -8,6 +8,7 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
+import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -65,8 +66,6 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
             ARR_DISTANCE_RATE[i] = (float) CommUtils.dbm2Distance((App.MIN_RSSI - App.MAX_RSSI) * (1 - RATE_WAVE[i]) + App.MAX_RSSI);
         }
     }
-
-    private Bitmap mBitmapBuffer;
 
     // dragging vars
     /**
@@ -131,9 +130,6 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
     private WindowManager mWindowManager;
     private Rect mDeleteRect;
     private Rect mRectStrSkechMap;
-    private Paint mPaintBg;
-
-    private Canvas mCanvasBuffer;
 
     // CONSTRUCTOR AND HELPERS
     public DragViewGroup1(Context context, AttributeSet attrs) {
@@ -156,38 +152,27 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
     @Override
     protected void dispatchDraw(Canvas canvas) {
 
-        if (mCanvasBuffer != null) {
-            mCanvasBuffer.drawRect(0, 0, getWidth(), getHeight(), mPaintBg);
-            try {
-                if (mDrawableWave != null)
-                    mDrawableWave.draw(mCanvasBuffer);
+        try {
 
-                if (mBgDrawable != null)
-                    mBgDrawable.draw(mCanvasBuffer);
-
-//        for (int i = 0; i < mArrayPathWave.length; ++i)
-//            if (mArrayPathWave[i] != null) {
-//                mPathPaint.setColor(COLOR_PATH_RANGE[i]);
-//                canvas.drawPath(mArrayPathWave[i], mPathPaint);
-//            }
-
-
-                super.dispatchDraw(mCanvasBuffer);
-
-                if (mIsDraggedRectShowing && mArrayRectDropEnable != null && !mArrayRectDropEnable.isEmpty()) {
-                    for (RectF rect : mArrayRectDropEnable) {
-//                canvas.drawRect(rect, mPathDropEnable);
-                        mCanvasBuffer.drawRoundRect(rect, RADIUS_ROUND_RECT, RADIUS_ROUND_RECT, mPathDropEnable);
-                    }
-                }
-
-                drawSketchMap(mCanvasBuffer);
-            } catch (Exception e) {
-                e.printStackTrace();
+            if (mBgDrawable != null) {
+                mBgDrawable.draw(canvas);
             }
-            canvas.drawBitmap(mBitmapBuffer, 0, 0, mPaintBg);
-        } else
+
+            if (mDrawableWave != null)
+                mDrawableWave.draw(canvas);
+
             super.dispatchDraw(canvas);
+
+            if (mIsDraggedRectShowing && mArrayRectDropEnable != null && !mArrayRectDropEnable.isEmpty()) {
+                for (RectF rect : mArrayRectDropEnable) {
+                    canvas.drawRoundRect(rect, RADIUS_ROUND_RECT, RADIUS_ROUND_RECT, mPathDropEnable);
+                }
+            }
+
+            drawSketchMap(canvas);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -241,10 +226,6 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
 //        Log.e(getClass().getSimpleName(), String.format("onLayout(%d,%d,%d,%d)", l, t, r, b));
 
-        if (changed) {
-            mBitmapBuffer = Bitmap.createBitmap(r - l, b - t, Bitmap.Config.ARGB_8888);
-            mCanvasBuffer = new Canvas(mBitmapBuffer);
-        }
         //布局背景
         if (mBgDrawable != null) {
             mBgDrawable.setBounds(-mScrollX, -mScrollY,
@@ -307,11 +288,93 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
         return -1;
     }
 
-    public int getIndexOf(View child) {
-        for (int i = 0; i < getChildCount(); i++)
-            if (getChildAt(i) == child)
-                return i;
-        return -1;
+    private void measurePath(PointF[] points, Path path, float lineSmoothness) {
+        //保存辅助线路径
+        Path assistPath = new Path();
+        float prePreviousPointX = Float.NaN;
+        float prePreviousPointY = Float.NaN;
+        float previousPointX = Float.NaN;
+        float previousPointY = Float.NaN;
+        float currentPointX = Float.NaN;
+        float currentPointY = Float.NaN;
+        float nextPointX;
+        float nextPointY;
+
+        final int lineSize = points.length;
+        for (int valueIndex = 0; valueIndex < lineSize; ++valueIndex) {
+            if (Float.isNaN(currentPointX)) {
+                PointF point = points[valueIndex];
+                currentPointX = point.x;
+                currentPointY = point.y;
+            }
+            if (Float.isNaN(previousPointX)) {
+                //是否是第一个点
+                if (valueIndex > 0) {
+                    PointF point = points[valueIndex - 1];
+                    previousPointX = point.x;
+                    previousPointY = point.y;
+                } else {
+                    //是的话就用当前点表示上一个点
+                    previousPointX = currentPointX;
+                    previousPointY = currentPointY;
+                }
+            }
+
+            if (Float.isNaN(prePreviousPointX)) {
+                //是否是前两个点
+                if (valueIndex > 1) {
+                    PointF point = points[valueIndex - 2];
+                    prePreviousPointX = point.x;
+                    prePreviousPointY = point.y;
+                } else {
+                    //是的话就用当前点表示上上个点
+                    prePreviousPointX = previousPointX;
+                    prePreviousPointY = previousPointY;
+                }
+            }
+
+            // 判断是不是最后一个点了
+            if (valueIndex < lineSize - 1) {
+                PointF point = points[valueIndex + 1];
+                nextPointX = point.x;
+                nextPointY = point.y;
+            } else {
+                //是的话就用当前点表示下一个点
+                nextPointX = currentPointX;
+                nextPointY = currentPointY;
+            }
+
+            if (valueIndex == 0) {
+                // 将Path移动到开始点
+                path.moveTo(currentPointX, currentPointY);
+                assistPath.moveTo(currentPointX, currentPointY);
+            } else {
+                // 求出控制点坐标
+                final float firstDiffX = (currentPointX - prePreviousPointX);
+                final float firstDiffY = (currentPointY - prePreviousPointY);
+                final float secondDiffX = (nextPointX - previousPointX);
+                final float secondDiffY = (nextPointY - previousPointY);
+                final float firstControlPointX = previousPointX + (lineSmoothness * firstDiffX);
+                final float firstControlPointY = previousPointY + (lineSmoothness * firstDiffY);
+                final float secondControlPointX = currentPointX - (lineSmoothness * secondDiffX);
+                final float secondControlPointY = currentPointY - (lineSmoothness * secondDiffY);
+                //画出曲线
+                path.cubicTo(firstControlPointX, firstControlPointY, secondControlPointX, secondControlPointY,
+                        currentPointX, currentPointY);
+                //将控制点保存到辅助路径上
+                assistPath.lineTo(firstControlPointX, firstControlPointY);
+                assistPath.lineTo(secondControlPointX, secondControlPointY);
+                assistPath.lineTo(currentPointX, currentPointY);
+            }
+
+            // 更新值,
+            prePreviousPointX = previousPointX;
+            prePreviousPointY = previousPointY;
+            previousPointX = currentPointX;
+            previousPointY = currentPointY;
+            currentPointX = nextPointX;
+            currentPointY = nextPointY;
+        }
     }
 
     // EVENT HANDLERS
@@ -821,64 +884,6 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
         return arrayList;
     }
 
-    private ArrayList<Path> createPathMorePoints(List<DeviceLocation> list, float cX, float cY) {
-        ArrayList<Path> arrayList = new ArrayList<>();
-
-        ArrayList<PointF> points = new ArrayList<>(list.size());
-        ArrayList<Double> rs = new ArrayList<>(list.size());
-
-        //先增加最小半径
-        double minR;
-
-        for (int i = 0; i < ARR_DISTANCE_RATE.length; i++) {
-            rs.clear();
-            points.clear();
-            minR = Integer.MAX_VALUE;
-            Path path = new Path();
-
-            for (DeviceLocation d : list) {
-                double R = getDistanceIn2Points(cX, cY, d.getX(), d.getY());
-                double distance = CommUtils.dbm2Distance(d.getWifiDevice().getRssi());
-                double rate = ARR_DISTANCE_RATE[i] / distance;
-                double nR = R * rate;
-                rs.add(nR);
-
-
-                double x = d.getX() - cX;
-                x *= rate;
-                x += cX;
-                double y = d.getY() - cY;
-                y *= rate;
-                y += cY;
-
-                points.add(new PointF((float) x, (float) y));
-            }
-
-
-            for (Double r : rs) {
-                if (minR > r)
-                    minR = r;
-            }
-
-            path.addCircle(cX, cY, (float) minR, Path.Direction.CW);
-
-            //其它点增加到中心点为直径的圆
-            for (int l = 0; l < points.size() - 2; ++l) {
-                for (int j = i + 1; j < points.size() - 1; j++) {
-                    for (int k = j + 1; k < points.size(); k++) {
-                        if (isInLine(points.get(l), points.get(j), points.get(k)))
-                            continue;
-                        path.addPath(getPathBy3Points(points.get(l), points.get(j), points.get(k)));
-                    }
-                }
-            }
-            path.close();
-            arrayList.add(path);
-        }
-
-        return arrayList;
-    }
-
     private ArrayList<Path> createPathMorePoints1(List<DeviceLocation> list, float cX, float cY) {
         ArrayList<Path> arrayList = new ArrayList<>();
 
@@ -889,9 +894,6 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
         DeviceLocation[] arrLocation = new DeviceLocation[list.size()];
         arrLocation = list.toArray(arrLocation);
         Arrays.sort(arrLocation);
-        for (int i = 0; i < arrLocation.length; i++) {
-            System.err.println("===>" + arrLocation[i].toString());
-        }
         PointF[] tempSameValuePoints = new PointF[arrLocation.length];
         for (float v : ARR_DISTANCE_RATE) {
 
@@ -916,16 +918,24 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
 
             //获取绘制贝塞尔曲线的点并增加辅助点
             ArrayList<PointF> arrPoints = new ArrayList();
-            for (int i = 0; i < tempSameValuePoints.length - 1; i++) {
-                DeviceLocation d1 = arrLocation[i];
-                DeviceLocation d2 = arrLocation[i + 1];
+            int addnum = 0;
+            for (int i = 0, j; i < tempSameValuePoints.length; ++i) {
+                j = i + 1;
+                if (j == tempSameValuePoints.length)
+                    j = 0;
+
+                float angle1 = arrLocation[i].getAngle();
+                float angle2 = arrLocation[j].getAngle();
 
                 PointF f1 = tempSameValuePoints[i];
-                PointF f2 = tempSameValuePoints[i + 1];
+                PointF f2 = tempSameValuePoints[j];
 
                 arrPoints.add(f1);
 
-                if (d2.getAngle() - d1.getAngle() < 45) {
+                if (angle2 > angle1) {
+                    if (angle2 - angle1 < 45)
+                        continue;
+                } else if (angle2 + 360 - angle1 < 45) {
                     continue;
                 }
 
@@ -933,50 +943,65 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
                 double R1 = getDistanceIn2Points(cX, cY, f1.x, f1.y);
                 double R2 = getDistanceIn2Points(cX, cY, f1.x, f2.y);
 
-                int addnum = Math.round((d2.getAngle() - d1.getAngle()) / 45);
-                pushPointsToArray(cX, cY, R1, R2, d1.getAngle(), d2.getAngle(), addnum, arrPoints);
-            }
-            {//判断收尾的点的辅助点个数
-                DeviceLocation d1 = arrLocation[arrLocation.length - 1];
-                DeviceLocation d2 = arrLocation[0];
+                if (angle2 > angle1)
+                    addnum = Math.round((angle2 - angle1) / 45);
+                else
+                    addnum = Math.round((angle2 + 360 - angle1) / 45);
 
-                PointF f1 = tempSameValuePoints[arrLocation.length - 1];
-                PointF f2 = tempSameValuePoints[0];
-                arrPoints.add(f1);
-
-                int addnum = 0;
-                if (d2.getAngle() - d1.getAngle() + 360 > 45) {
-                    addnum = Math.round((d2.getAngle() - d1.getAngle() + 360) / 45);
-                }
-
-                if ((addnum + arrPoints.size()) % 2 == 1)
-                    ++addnum;
-                double R1 = getDistanceIn2Points(cX, cY, f1.x, f1.y);
-                double R2 = getDistanceIn2Points(cX, cY, f2.x, f1.y);
-                pushPointsToArray(cX, cY, R1, R2, d1.getAngle() - 360, d2.getAngle(), addnum, arrPoints);
+                if (i + 1 == tempSameValuePoints.length)
+                    pushPointsToArray(cX, cY, R1, R2, angle1, angle2 + 360, addnum, arrPoints);
+                else
+                    pushPointsToArray(cX, cY, R1, R2, angle1, angle2, addnum, arrPoints);
             }
-            //用贝塞尔曲线连接所有点并闭合
-            Path path = new Path();
-            path.moveTo(arrPoints.get(0).x, arrPoints.get(0).y);
-            for (int i = 1; i < arrPoints.size() - 1; i += 2) {
-                path.quadTo(arrPoints.get(i).x, arrPoints.get(i).y, arrPoints.get(i + 1).x, arrPoints.get(i + 1).y);
-            }
-            path.quadTo(arrPoints.get(arrPoints.size() - 1).x, arrPoints.get(arrPoints.size() - 1).y, arrPoints.get(0).x, arrPoints.get(0).y);
-//            for (int i = 0; i < arrPoints.size(); i++) {
-//                path.lineTo(arrPoints.get(i).x, arrPoints.get(i).y);
-//            }
-            path.close();
+
+
+            Path path = createPathByBezier(arrPoints, cX, cY);
             arrayList.add(path);
         }
 
         return arrayList;
     }
 
+    /**
+     * @param arrPoints 顺时针旋转的坐标
+     * @param cX        圆心坐标X
+     * @param cY        圆心坐标Y
+     * @return 生成连接每个点的贝塞尔曲线的path
+     */
+    private Path createPathByBezier(ArrayList<PointF> arrPoints, float cX, float cY) {
+        //用贝塞尔曲线连接所有点并闭合
+        Path path = new Path();
+        path.moveTo(arrPoints.get(0).x, arrPoints.get(0).y);
+
+        path.moveTo(arrPoints.get(1).x, arrPoints.get(1).y);
+        int length = arrPoints.size();
+        for (int i = 2; i < length + 2; i++) {
+
+            PointF p1 = arrPoints.get((i - 2) % length);
+            PointF p2 = arrPoints.get((i - 1) % length);
+            PointF p3 = arrPoints.get(i % length);
+            PointF p4 = arrPoints.get((i + 1) % length);
+
+            float pX = p2.x + (p3.x - p1.x) / 5;
+            float pY = p2.y + (p3.y - p1.y) / 5;
+            float nX = p3.x - (p4.x - p2.x) / 5;
+            float nY = p3.y - (p4.y - p2.y) / 5;
+            path.cubicTo(pX, pY, nX, nY, p3.x, p3.y);
+        }
+        path.close();
+        return path;
+    }
+
+    /**
+     * 将增加的点推到arrPoints中
+     *
+     * @param arrPoints 不能为null，用来接收结果对象
+     */
     private void pushPointsToArray(float cX, float cY, double radius1, double radius2, float angle1, float angle2, int addnum, ArrayList<PointF> arrPoints) {
         float perAngle = (angle2 - angle1) / (addnum + 1);
         double perRadius = (radius2 - radius1) / (addnum + 1);
 
-        for (int j = 0; j < addnum; j++) {//计算要添加的辅助点，渐进前后两个点之间的半径角度
+        for (int j = 1; j < addnum + 1; j++) {//计算要添加的辅助点，渐进前后两个点之间的半径角度
             double Rt = perRadius * j + radius1;
             float angle = angle1 + j * perAngle;
             float x = (float) Math.cos(angle / 180 * Math.PI);
@@ -1092,11 +1117,6 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
         mPathDropEnable.setAntiAlias(true);
         //DashPathEffect是Android提供的虚线样式API，具体的使用可以参考下面的介绍
         mPathDropEnable.setPathEffect(new DashPathEffect(new float[]{2, 3}, .5f));
-
-        mPaintBg = new Paint();
-        mPaintBg.setColor(getResources().getColor(R.color.colorBg));
-        mPaintBg.setStyle(Paint.Style.FILL);
-
     }
 
     private void showDeleteView() {
@@ -1128,7 +1148,6 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
     }
 
     private boolean isInDeleteState(int x, int y) {
-        System.err.println(String.format("(%d,%d),", x, y) + mDeleteRect.toString());
         return mDeleteRect.contains(x, y);
     }
 
