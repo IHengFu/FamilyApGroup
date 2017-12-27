@@ -684,11 +684,11 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
             case 1:
                 arrPath = createPathOnePoints(effectPoints, cX, cY);
                 break;
-            case 2:
-                arrPath = createPathTwoPoints(effectPoints, cX, cY);
-                break;
+//            case 2:
+//                arrPath = createPathTwoPoints(effectPoints, cX, cY);
+//                break;
             default:
-                arrPath = createPathTwoPoints(effectPoints, cX, cY);
+                arrPath = createPathMorePoints1(effectPoints, cX, cY);
                 break;
         }
 
@@ -958,13 +958,13 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
             //用贝塞尔曲线连接所有点并闭合
             Path path = new Path();
             path.moveTo(arrPoints.get(0).x, arrPoints.get(0).y);
-//            for (int i = 1; i < arrPoints.size() - 1; i += 2) {
-//                path.quadTo(arrPoints.get(i).x, arrPoints.get(i).y, arrPoints.get(i + 1).x, arrPoints.get(i + 1).y);
-//            }
-//            path.quadTo(arrPoints.get(arrPoints.size() - 1).x, arrPoints.get(arrPoints.size() - 1).y, arrPoints.get(0).x, arrPoints.get(0).y);
-            for (int i = 0; i < arrPoints.size(); i++) {
-                path.lineTo(arrPoints.get(i).x, arrPoints.get(i).y);
+            for (int i = 1; i < arrPoints.size() - 1; i += 2) {
+                path.quadTo(arrPoints.get(i).x, arrPoints.get(i).y, arrPoints.get(i + 1).x, arrPoints.get(i + 1).y);
             }
+            path.quadTo(arrPoints.get(arrPoints.size() - 1).x, arrPoints.get(arrPoints.size() - 1).y, arrPoints.get(0).x, arrPoints.get(0).y);
+//            for (int i = 0; i < arrPoints.size(); i++) {
+//                path.lineTo(arrPoints.get(i).x, arrPoints.get(i).y);
+//            }
             path.close();
             arrayList.add(path);
         }
@@ -1199,18 +1199,21 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
     /**
      * -90~270
      */
-    private double getRelativeAngle(float cx, float cy, float x, float y) {
-        double reslut = y - cy;
-        reslut /= x - cx;
+    private static double getRelativeAngle(float cx, float cy, float dx, float dy) {
 
-        reslut = Math.atan(reslut);
-        reslut = Math.toDegrees(reslut);
+        float x = dx - cx;
+        float y = dy - cy;
 
-        if (reslut < 0) {
-            reslut += 360;
-        }
+        double result = y / x;
+        result = Math.atan(result);
+        result = Math.toDegrees(result);
 
-        return reslut;
+        if (x < 0) {
+            result += 180;
+        } else if (y < 0)
+            result += 360;
+
+        return result;
     }
 
     private void reset() {

@@ -61,8 +61,10 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
         setSupportActionBar(toolbar)
         toolbar.setNavigationIcon(R.mipmap.ic_setting)
         EventBus.getDefault().register(this)
-        if (!App.sTest)
+        if (!App.sTest){
             startService(Intent(this, StartService::class.java))
+            mProgressDialog = ProgressDialog.show(this, null, getString(R.string.notice_download_data), true, false)
+        }
         else {
             mArrayDevices.addAll(getDevices())
         }
@@ -89,7 +91,7 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
         val r2 = Rect(9, 9, 11, 11)
         System.err.println(" test ${r1.contains(r2)}")
 
-        mProgressDialog = ProgressDialog.show(this, null, getString(R.string.notice_download_data), true, false)
+
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

@@ -19,7 +19,7 @@ public class App extends Application {
 
     public static App sInstance;
 
-    public static boolean sTest = false;
+    public static boolean sTest = true;
 
     private ExecutorService mThreadPool;
 

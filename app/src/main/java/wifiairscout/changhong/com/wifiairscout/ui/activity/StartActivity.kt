@@ -122,6 +122,7 @@ class StartActivity : AppCompatActivity() {
                     dialogInterface.dismiss()
                     finish()
                 }.setNegativeButton(R.string.action_settings, { dialogInterface, _ ->
+            dialogInterface.dismiss()
             startActivityForResult(Intent(android.provider.Settings.ACTION_WIFI_SETTINGS), REQUEST_SETTING_WIFI)
         }).create()
         dialog?.setCancelable(true)
