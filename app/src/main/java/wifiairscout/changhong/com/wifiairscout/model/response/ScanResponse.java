@@ -14,6 +14,7 @@ import wifiairscout.changhong.com.wifiairscout.model.WifiDevice;
 
 public class ScanResponse extends BaseResponse {
 
+
     private List<WifiDevice> mListAp;
 
     public ScanResponse(byte[] data) {
@@ -67,4 +68,7 @@ public class ScanResponse extends BaseResponse {
         return ap;
     }
 
+    public List<WifiDevice> getListAp() {
+        return mListAp;
+    }
 }

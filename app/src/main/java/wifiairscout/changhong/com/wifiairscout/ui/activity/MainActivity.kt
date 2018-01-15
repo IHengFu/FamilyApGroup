@@ -32,7 +32,7 @@ import wifiairscout.changhong.com.wifiairscout.utils.CommUtils
 import wifiairscout.changhong.com.wifiairscout.utils.FileUtils
 import kotlin.collections.ArrayList
 
-class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
+class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener ,View.OnClickListener{
 
 
     private val viewPager: DragViewPager<WifiDevice> by lazy { findViewById<DragViewPager<WifiDevice>>(R.id.vp_device) }
@@ -114,6 +114,12 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
         EventBus.getDefault().unregister(this)
         stopFlushRssi()
         super.onDestroy()
+    }
+    override fun onClick(p0: View?) {
+       when(p0?.id){
+            R.id.btn_optimization->startActivity(Intent(this,ChannelConditionActivity::class.java))
+           R.id.btn_optimization->doOptimization()
+       }
     }
 
     fun getDevices(): ArrayList<WifiDevice> {
@@ -326,5 +332,9 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
         var housedata = HouseData(content)
         //TODO
 //        layout_apartment.setHouseData(housedata)
+    }
+
+    private fun doOptimization() {
+        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
 }

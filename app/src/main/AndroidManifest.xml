@@ -60,7 +60,10 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".ui.activity.OperationActivity"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".ui.activity.ChannelConditionActivity"
+            android:screenOrientation="portrait" />
 
         <service android:name=".service.StartService" />
     </application>

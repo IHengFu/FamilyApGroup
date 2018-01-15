@@ -12,8 +12,8 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:text="@string/title_device_list" />
+        android:text="@string/title_device_list"
+        android:visibility="gone" />
 
     <wifiairscout.changhong.com.wifiairscout.ui.view.DragViewPager
         android:id="@+id/vp_device"
@@ -25,10 +25,10 @@
         android:paddingRight="130dp" />
 
     <TextView
-        android:visibility="gone"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/title_intensity_map" />
+        android:text="@string/title_intensity_map"
+        android:visibility="gone" />
 
     <wifiairscout.changhong.com.wifiairscout.ui.view.DragViewGroup
 
@@ -39,4 +39,34 @@
         android:layout_weight="1"
         android:clipToPadding="true" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingBottom="6dp">
+
+        <Button
+            android:id="@+id/btn_start_scan"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="20dp"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            style="@style/Widget.AppCompat.Button.Small"
+            android:background="@drawable/round_btn_bg"
+            android:gravity="center"
+            android:text="@string/start_scan" />
+
+        <Button
+            android:id="@+id/btn_optimization"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            style="@style/Widget.AppCompat.Button.Small"
+            android:background="@drawable/round_btn_bg"
+            android:gravity="center"
+            android:text="@string/optimization" />
+    </LinearLayout>
 </LinearLayout>

@@ -11,7 +11,8 @@
     <string name="action_delete">Delete</string>
     <string name="action_add">Add</string>
     <string name="action_continue">Continue</string>
-
+    <string name="action_refuse">Refuse</string>
+    <string name="action_accept">Accept</string>
 
     <string name="ask_retry">Retry or not?</string>
     <string name="ask_save_or_not">Save or not？</string>
@@ -35,4 +36,8 @@
     <string name="notice_wait_for_develop">Wait for develop</string>
     <string name="title_device_list">Device List</string>
     <string name="notice_download_data">Please wait for download data...</string>
+    <!--channel condition-->
+    <string name="no_data">No data</string>
+    <string name="start_scan">Start scan</string>
+    <string name="optimization">Optimization</string>
 </resources>

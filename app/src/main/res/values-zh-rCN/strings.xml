@@ -12,6 +12,8 @@
     <string name="action_delete">删除</string>
     <string name="action_add">添加</string>
     <string name="action_continue">继续</string>
+    <string name="action_refuse">拒绝</string>
+    <string name="action_accept">接受</string>
 
     <string name="ask_retry">是否重试？</string>
     <string name="ask_save_or_not">是否保存？</string>
@@ -35,4 +37,8 @@
     <string name="notice_wait_for_develop">待开发</string>
     <string name="title_device_list">设备列表</string>
     <string name="notice_download_data">数据加载中，请稍后……</string>
+    <!--channel condition-->
+    <string name="no_data">无数据</string>
+    <string name="start_scan">启动测试</string>
+    <string name="optimization">一键优化</string>
 </resources>

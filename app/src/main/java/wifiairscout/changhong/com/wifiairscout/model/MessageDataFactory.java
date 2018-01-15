@@ -170,4 +170,21 @@ public class MessageDataFactory {
 
         return messageData;
     }
+
+    /**
+     * 5.9	工作频段
+     *
+     * @param is5G
+     */
+    public static final MessageData setWorkChannel(boolean is5G) {
+        String mac = App.sInstance.getWifiInfo().getMacAddress();
+        MessageData messageData = new MessageData(false, mac, false, true, System.currentTimeMillis());
+        messageData.setMsgId((short) 8);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(7);
+        baos.write(WifiDevice.Companion.to6ByteMac(App.sInstance.getWifiInfo().getMacAddress()), 0, 6);
+        baos.write(is5G ? 0 : 1);
+        messageData.setMsgBody(baos.toByteArray());
+        return messageData;
+    }
 }
