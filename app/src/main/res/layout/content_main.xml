@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:text="@string/title_intensity_map" />
 
-    <wifiairscout.changhong.com.wifiairscout.ui.view.DragViewGroup1
+    <wifiairscout.changhong.com.wifiairscout.ui.view.DragViewGroup
 
         android:id="@+id/layout_apartment"
         android:layout_width="match_parent"

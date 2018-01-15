@@ -20,4 +20,9 @@
         <item>house/house_base.json</item>
         <item>house/house1.json</item>
     </string-array>
+
+    <string-array name="showStyle">
+        <item>PointInfoMap</item>
+        <item>PowerMap</item>
+    </string-array>
 </resources>

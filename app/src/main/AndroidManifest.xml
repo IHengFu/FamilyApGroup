@@ -58,6 +58,9 @@
             android:name=".ui.activity.HouseStyleChoiceActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".ui.activity.OperationActivity"
+            android:screenOrientation="portrait"/>
 
         <service android:name=".service.StartService" />
     </application>

@@ -109,7 +109,7 @@ class StartService : Service() {
         override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
             if (arrTask.contains(task))
                 arrTask.remove(task!!)
-            closeSelf();
+            closeSelf()
         }
 
         override fun onCancelled(task: GenericTask?) {

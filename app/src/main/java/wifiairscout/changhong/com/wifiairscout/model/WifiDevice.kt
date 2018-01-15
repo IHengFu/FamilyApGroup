@@ -9,12 +9,16 @@ import android.text.Html
  */
 class WifiDevice(var type: Byte, var ip: String?, val mac: String?, var name: String?, var channel: Byte?) : Parcelable {
     var rssi: Byte = 0
+    var encryptType: Byte = -1
+    var cipher: Byte = -1
 
     constructor(r: Byte, s: String) : this(0.toByte(), null, s, null, null) {
         rssi = r
     }
 
     companion object {
+        val ENCRYPT_TYPE = arrayOf("disabled", "wep", "wpa", "wpa2", "wp2_mixed", "wapi")
+        val CIPHER_TYPE = arrayOf("tkip", "aes", "mixed")
         fun toStringIp(ip: Int): String {
             var result = Integer.toString(ip.and(0xff))
             result += '.'
@@ -78,6 +82,10 @@ class WifiDevice(var type: Byte, var ip: String?, val mac: String?, var name: St
         }
     }
 
+    fun getEncryptType() = ENCRYPT_TYPE[encryptType.toInt()]
+    fun getCipherName() = CIPHER_TYPE[cipher.toInt()]
+
+
     fun eat(d: WifiDevice) {
         if (d.channel != null)
             this.channel = d.channel
@@ -98,6 +106,8 @@ class WifiDevice(var type: Byte, var ip: String?, val mac: String?, var name: St
             parcel.readString(),
             parcel.readByte()) {
         this.rssi = parcel.readByte()
+        this.encryptType = parcel.readByte()
+        this.cipher = parcel.readByte()
     }
 
 
@@ -108,6 +118,8 @@ class WifiDevice(var type: Byte, var ip: String?, val mac: String?, var name: St
         parcel.writeString(name)
         parcel.writeByte(channel ?: 0.toByte())
         parcel.writeByte(rssi)
+        parcel.writeByte(encryptType)
+        parcel.writeByte(cipher)
     }
 
     override fun equals(other: Any?): Boolean {

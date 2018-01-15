@@ -2,6 +2,7 @@ package wifiairscout.changhong.com.wifiairscout.model;
 
 import android.net.wifi.WifiInfo;
 
+import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 
 import wifiairscout.changhong.com.wifiairscout.App;
@@ -103,6 +104,9 @@ public class MessageDataFactory {
         return getClientStatus(data);
     }
 
+    /**
+     * Master信息
+     */
     public static final MessageData getMasterInfo(String mac) {
         MessageData messageData = new MessageData(true, mac, false, true, System.currentTimeMillis());
         messageData.setMsgId((short) 4);
@@ -110,4 +114,60 @@ public class MessageDataFactory {
         return messageData;
     }
 
+    /**
+     * 5.6信道 GET
+     */
+    public static final MessageData getChannel() {
+        String mac = App.sInstance.getWifiInfo().getMacAddress();
+        MessageData messageData = new MessageData(true, mac, false, true, System.currentTimeMillis());
+        messageData.setMsgId((short) 5);
+
+        messageData.setMsgBody(WifiDevice.Companion.to6ByteMac(mac));
+        return messageData;
+    }
+
+    /**
+     * 5.6信道 SET
+     */
+    public static final MessageData setChannel(int channel) {
+        String mac = App.sInstance.getWifiInfo().getMacAddress();
+        MessageData messageData = new MessageData(false, mac, false, true, System.currentTimeMillis());
+        messageData.setMsgId((short) 5);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(7);
+        baos.write(WifiDevice.Companion.to6ByteMac(App.sInstance.getWifiInfo().getMacAddress()), 0, 6);
+        baos.write(channel);
+        messageData.setMsgBody(baos.toByteArray());
+
+        return messageData;
+    }
+
+    /**
+     * 5.7 扫描
+     */
+    public static final MessageData doScan(boolean is5G) {
+        String mac = App.sInstance.getWifiInfo().getMacAddress();
+        MessageData messageData = new MessageData(true, mac, false, true, System.currentTimeMillis());
+        messageData.setMsgId((short) 6);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(7);
+        baos.write(WifiDevice.Companion.to6ByteMac(App.sInstance.getWifiInfo().getMacAddress()), 0, 6);
+        baos.write(is5G ? 0 : 1);
+        messageData.setMsgBody(baos.toByteArray());
+
+        return messageData;
+    }
+
+    /**
+     * 5.8	传输速率
+     */
+    public static final MessageData getTranslateSpeed(String client_mac) {
+        String mac = App.sInstance.getWifiInfo().getMacAddress();
+        MessageData messageData = new MessageData(true, mac, false, true, System.currentTimeMillis());
+        messageData.setMsgId((short) 7);
+
+        messageData.setMsgBody(WifiDevice.Companion.to6ByteMac(client_mac));
+
+        return messageData;
+    }
 }

@@ -26,11 +26,10 @@ import wifiairscout.changhong.com.wifiairscout.preferences.Preferences
 import wifiairscout.changhong.com.wifiairscout.service.StartService
 import wifiairscout.changhong.com.wifiairscout.task.GenericTask
 import wifiairscout.changhong.com.wifiairscout.ui.adapter.DeviceViewPagerAdapter
-import wifiairscout.changhong.com.wifiairscout.ui.view.DragViewGroup1
+import wifiairscout.changhong.com.wifiairscout.ui.view.DragViewGroup
 import wifiairscout.changhong.com.wifiairscout.ui.view.DragViewPager
 import wifiairscout.changhong.com.wifiairscout.utils.CommUtils
 import wifiairscout.changhong.com.wifiairscout.utils.FileUtils
-import java.util.*
 import kotlin.collections.ArrayList
 
 class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
@@ -38,7 +37,7 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
 
     private val viewPager: DragViewPager<WifiDevice> by lazy { findViewById<DragViewPager<WifiDevice>>(R.id.vp_device) }
 
-    private val layout_apartment: DragViewGroup1 by lazy { findViewById<DragViewGroup1>(R.id.layout_apartment) }
+    private val layout_apartment: DragViewGroup by lazy { findViewById<DragViewGroup>(R.id.layout_apartment) }
     private val mArrayDevices = ArrayList<WifiDevice>()
 
     private var mUdpTask: GenericTask? = null
@@ -101,7 +100,7 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
                 return true
             }
             android.R.id.home -> {
-                startActivityForResult(Intent(this@MainActivity, HouseStyleChoiceActivity::class.java), REQUEST_OPRATION)
+                startActivityForResult(Intent(this@MainActivity, OperationActivity::class.java), REQUEST_OPRATION)
                 return true
             }
 
@@ -148,7 +147,7 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
             }
 
 
-            return result;
+            return result
         }
 
         return intent.getParcelableArrayListExtra(Intent.EXTRA_DATA_REMOVED)
@@ -325,6 +324,7 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener {
         val filename = resources.getStringArray(R.array.pathOfHouseStyle)[index]
         val content = FileUtils.getTextFromAssets(this, filename, App.CHARSET)
         var housedata = HouseData(content)
-        layout_apartment.setHouseData(housedata)
+        //TODO
+//        layout_apartment.setHouseData(housedata)
     }
 }

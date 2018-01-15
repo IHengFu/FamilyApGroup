@@ -1,18 +1,24 @@
 package wifiairscout.changhong.com.wifiairscout.ui.view;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.PointF;
 import android.graphics.Rect;
+import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.AppCompatImageView;
+import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -20,32 +26,46 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.AnimationSet;
-import android.view.animation.ScaleAnimation;
 import android.widget.AdapterView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 import wifiairscout.changhong.com.wifiairscout.App;
 import wifiairscout.changhong.com.wifiairscout.R;
-import wifiairscout.changhong.com.wifiairscout.contral.TouchContral;
 import wifiairscout.changhong.com.wifiairscout.model.DeviceLocation;
+import wifiairscout.changhong.com.wifiairscout.model.HouseData;
 import wifiairscout.changhong.com.wifiairscout.model.WifiDevice;
+import wifiairscout.changhong.com.wifiairscout.utils.CommUtils;
+import wifiairscout.changhong.com.wifiairscout.utils.FileUtils;
 import wifiairscout.changhong.com.wifiairscout.utils.UnitUtils;
 
 /**
  * Created by fuheng on 2017/12/8.
  */
-
 public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         View.OnClickListener, View.OnLongClickListener {
+    private final int RADIUS_ROUND_RECT;
     // layout vars
-    private float childSize = 0;
-    private int padding, scroll = 0;
-    protected float lastDelta = 0;
+    private final int SIZE_CHILD;
+    private final int SIZE_CHILD_TEXT;
+
+    private static final int[] COLOR_PATH_RANGE = {0x11ff0000, 0x22ff0000, 0x33ffff00, 0x4488ff00, 0x5500ff00};
+
+    private static final float[] RATE_WAVE = {0, .25f, .5f, .7f, .85f};
+    private static final float[] ARR_DISTANCE_RATE;
+
+    static {
+        ARR_DISTANCE_RATE = new float[RATE_WAVE.length];
+        for (int i = 0; i < ARR_DISTANCE_RATE.length; i++) {
+            ARR_DISTANCE_RATE[i] = (float) CommUtils.dbm2Distance((App.MIN_RSSI - App.MAX_RSSI) * (1 - RATE_WAVE[i]) + App.MAX_RSSI);
+        }
+    }
+
     // dragging vars
     /**
      * 拖拽对象的序号
@@ -57,30 +77,36 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
     private int lastX = -1, lastY = -1;
     private double lastDistance;
     protected boolean enabled = true, touching = false;
-    // anim vars
-    public static int animT = 150;
 
+    // anim vars
+    public static final int DURATION_ANIM = 150;
 
     // listeners
     protected OnDragListener onDragListener;
     protected OnClickListener secondaryOnClickListener;
     private AdapterView.OnItemClickListener onItemClickListener;
 
-    private static final int STATE_NORMAL = 0;
-    private static final int STATE_DRAG = 1;
-    private static final int STATE_MOVE_CONTNT = 2;
-    private static final int STATE_MOVE_ZOOM = 3;
-    private int mState;
+    private Rect mTextBoundsRect = new Rect();
 
-    private Drawable mBgDrawable;
+    /**
+     * 缩放相关
+     */
+    private float mScale = 1f;
+    /**
+     * 拖拽相关
+     */
+    private int mScrollX, mScrollY;
+
+    private Paint mPathDropEnable = null;
+    private boolean mIsDraggedRectShowing;
+
+
     /**
      * 设备信息
      */
     private List<DeviceLocation> mListDeviceInfo;
-    private Path mPath80, mPath50, mPath30, mPath0;
 
     private Paint mPathPaint = null;
-    private TouchContral touchContral;
 
     /**
      * 强弱示意图
@@ -98,48 +124,39 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
     private Rect mDeleteRect;
     private Rect mRectStrSkechMap;
 
+
     // CONSTRUCTOR AND HELPERS
     public DragViewGroup(Context context, AttributeSet attrs) {
         super(context, attrs);
+
         setListeners();
 
         mWindowManager = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
 
         setChildrenDrawingOrderEnabled(true);
 
-        childSize = UnitUtils.dip2px(getContext(), 40);
+        SIZE_CHILD = UnitUtils.dip2px(getContext(), 30);
+        SIZE_CHILD_TEXT = UnitUtils.dip2px(getContext(), 12);
+        RADIUS_ROUND_RECT = UnitUtils.dip2px(getContext(), 3);
 
         initPaint();
         initSketchMap();
     }
 
-
     @Override
     protected void dispatchDraw(Canvas canvas) {
-        if (mBgDrawable != null)
-            mBgDrawable.draw(canvas);
 
-        if (mPath0 != null) {
-            mPathPaint.setColor(0x33ff0000);
-            canvas.drawPath(mPath0, mPathPaint);
-        }
-        if (mPath30 != null) {
-            mPathPaint.setColor(0x44ffff00);
-            canvas.drawPath(mPath30, mPathPaint);
-        }
-        if (mPath50 != null) {
+        try {
 
-            mPathPaint.setColor(0x5588ff00);
-            canvas.drawPath(mPath50, mPathPaint);
-        }
-        if (mPath80 != null) {
-            mPathPaint.setColor(0x6600ff00);
-            canvas.drawPath(mPath80, mPathPaint);
-        }
+            if (mDrawableWave != null)
+                mDrawableWave.draw(canvas);
 
-        super.dispatchDraw(canvas);
+            super.dispatchDraw(canvas);
 
-        drawSketchMap(canvas);
+            drawSketchMap(canvas);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -158,38 +175,33 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         secondaryOnClickListener = l;
     }
 
-    public void addDevice(WifiDevice device) {
-        if (device == null) {
-            throw new RuntimeException("WifiDevice对象不可为空");
-        }
-
-        if (isContainDevice(device)) {
-            Toast.makeText(getContext(), device.getName() + " 设备不能重复添加", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        TextView child = createDisplayView(addDeviceLocation(device));
-        initForceWave();
-        super.addView(child);
-    }
-
     public void addDevice(WifiDevice device, int absX, int absY) {
         if (device == null) {
             throw new RuntimeException("WifiDevice对象不可为空");
         }
-        //判读是否进入此组件内
-        int[] outLocation = new int[2];
-        getLocationOnScreen(outLocation);
-        if (absX < outLocation[0] || absX > outLocation[0] + getWidth() || absY < outLocation[1] || absY > outLocation[1] + getHeight())
-            return;
 
         if (isContainDevice(device)) {
-            Toast.makeText(getContext(), device.getName() + " 设备不能重复添加", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "设备" + device.getName() + "不能重复添加", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        TextView child = createDisplayView(addDeviceLocation(device, absX - outLocation[0], absY - outLocation[1]));
-        initForceWave();
+        //判读是否进入此组件内
+        int[] outLocation = new int[2];
+        getLocationOnScreen(outLocation);
+        if (absX < outLocation[0] || absX > outLocation[0] + getWidth()
+                || absY < outLocation[1] || absY > outLocation[1] + getHeight()) {
+            return;
+        }
+
+        View child = createDisplayView(addDeviceLocation(device,
+                absX - outLocation[0] + mScrollX,
+                absY - outLocation[1] + mScrollY));
+        child.setTag(device);
+        try {
+            initForceWave();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         super.addView(child);
     }
 
@@ -197,25 +209,31 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
 //        Log.e(getClass().getSimpleName(), String.format("onLayout(%d,%d,%d,%d)", l, t, r, b));
+
         //布局背景
-        if (changed) {
-            if (mBgDrawable != null) {
-                mBgDrawable.setBounds(0, 0, r - l, b - t);
+        if (mDrawableWave != null) {
+            mDrawableWave.setBounds(-mScrollX, -mScrollY,
+                    (int) ((r - l) * mScale - mScrollX),
+                    (int) ((b - t) * mScale - mScrollY));
+        }
+
+        //布局设备 child 只位移不缩放
+        for (int i = 0; i < getChildCount(); i++) {
+            DeviceLocation d = mListDeviceInfo.get(i);
+            float x = d.getX() * mScale - mScrollX;
+            float y = d.getY() * mScale - mScrollY;
+            if (i != dragged) {
+                setChildLocation(i, x, y);
             }
         }
 
-        //布局设备
-        for (int i = 0; i < getChildCount(); i++)
-
-            if (i != dragged) {
-                View v = getChildAt(i);
-                v.layout(v.getLeft(), v.getTop(), v.getRight(), v.getBottom());
-            }
-
-        mSketchMapDrawable.setBounds(mRectStrSkechMap.width() + 1 + UnitUtils.dip2px(getContext(), 10),
-                getHeight() - UnitUtils.dip2px(getContext(), 20),
-                mRectStrSkechMap.width() + 1 + UnitUtils.dip2px(getContext(), 110),
-                getHeight() - UnitUtils.dip2px(getContext(), 10));
+        //游标卡尺位置不动
+        if (changed) {
+            mSketchMapDrawable.setBounds(mRectStrSkechMap.width() + 1 + UnitUtils.dip2px(getContext(), 10),
+                    getHeight() - UnitUtils.dip2px(getContext(), 20),
+                    mRectStrSkechMap.width() + 1 + UnitUtils.dip2px(getContext(), 110),
+                    getHeight() - UnitUtils.dip2px(getContext(), 10));
+        }
     }
 
     @Override
@@ -230,8 +248,6 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
     }
 
     private int getIndexFromCoor(int x, int y) {
-        x += getScrollX();
-        y += getScrollY();
         for (int i = getChildCount() - 1; i >= 0; i--) {
             View v = getChildAt(i);
             if (x < v.getLeft() || x > v.getRight() || y < v.getTop() || y > v.getBottom())
@@ -241,11 +257,93 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         return -1;
     }
 
-    public int getIndexOf(View child) {
-        for (int i = 0; i < getChildCount(); i++)
-            if (getChildAt(i) == child)
-                return i;
-        return -1;
+    private void measurePath(PointF[] points, Path path, float lineSmoothness) {
+        //保存辅助线路径
+        Path assistPath = new Path();
+        float prePreviousPointX = Float.NaN;
+        float prePreviousPointY = Float.NaN;
+        float previousPointX = Float.NaN;
+        float previousPointY = Float.NaN;
+        float currentPointX = Float.NaN;
+        float currentPointY = Float.NaN;
+        float nextPointX;
+        float nextPointY;
+
+        final int lineSize = points.length;
+        for (int valueIndex = 0; valueIndex < lineSize; ++valueIndex) {
+            if (Float.isNaN(currentPointX)) {
+                PointF point = points[valueIndex];
+                currentPointX = point.x;
+                currentPointY = point.y;
+            }
+            if (Float.isNaN(previousPointX)) {
+                //是否是第一个点
+                if (valueIndex > 0) {
+                    PointF point = points[valueIndex - 1];
+                    previousPointX = point.x;
+                    previousPointY = point.y;
+                } else {
+                    //是的话就用当前点表示上一个点
+                    previousPointX = currentPointX;
+                    previousPointY = currentPointY;
+                }
+            }
+
+            if (Float.isNaN(prePreviousPointX)) {
+                //是否是前两个点
+                if (valueIndex > 1) {
+                    PointF point = points[valueIndex - 2];
+                    prePreviousPointX = point.x;
+                    prePreviousPointY = point.y;
+                } else {
+                    //是的话就用当前点表示上上个点
+                    prePreviousPointX = previousPointX;
+                    prePreviousPointY = previousPointY;
+                }
+            }
+
+            // 判断是不是最后一个点了
+            if (valueIndex < lineSize - 1) {
+                PointF point = points[valueIndex + 1];
+                nextPointX = point.x;
+                nextPointY = point.y;
+            } else {
+                //是的话就用当前点表示下一个点
+                nextPointX = currentPointX;
+                nextPointY = currentPointY;
+            }
+
+            if (valueIndex == 0) {
+                // 将Path移动到开始点
+                path.moveTo(currentPointX, currentPointY);
+                assistPath.moveTo(currentPointX, currentPointY);
+            } else {
+                // 求出控制点坐标
+                final float firstDiffX = (currentPointX - prePreviousPointX);
+                final float firstDiffY = (currentPointY - prePreviousPointY);
+                final float secondDiffX = (nextPointX - previousPointX);
+                final float secondDiffY = (nextPointY - previousPointY);
+                final float firstControlPointX = previousPointX + (lineSmoothness * firstDiffX);
+                final float firstControlPointY = previousPointY + (lineSmoothness * firstDiffY);
+                final float secondControlPointX = currentPointX - (lineSmoothness * secondDiffX);
+                final float secondControlPointY = currentPointY - (lineSmoothness * secondDiffY);
+                //画出曲线
+                path.cubicTo(firstControlPointX, firstControlPointY, secondControlPointX, secondControlPointY,
+                        currentPointX, currentPointY);
+                //将控制点保存到辅助路径上
+                assistPath.lineTo(firstControlPointX, firstControlPointY);
+                assistPath.lineTo(secondControlPointX, secondControlPointY);
+                assistPath.lineTo(currentPointX, currentPointY);
+            }
+
+            // 更新值,
+            prePreviousPointX = previousPointX;
+            prePreviousPointY = previousPointY;
+            previousPointX = currentPointX;
+            previousPointY = currentPointY;
+            currentPointX = nextPointX;
+            currentPointY = nextPointY;
+        }
     }
 
     // EVENT HANDLERS
@@ -266,6 +364,7 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         int index = getLastIndex();
         if (index != -1) {
             dragged = index;
+            setDraggedRectShow(true);
             animateDragged();
             showDeleteView();
             return true;
@@ -273,9 +372,12 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         return false;
     }
 
-    private void setChildBounds(int dragged, float l, float t, float r, float b) {
-        View v = getChildAt(dragged);
-        v.layout((int) l, (int) t, (int) r, (int) b);
+    private void setChildLocation(int index, float x, float y) {
+        View v = getChildAt(index);
+        v.layout(Math.round(x - v.getWidth() / 2),
+                Math.round(y - v.getHeight() / 2),
+                Math.round(x + v.getWidth() / 2),
+                Math.round(y + v.getHeight() / 2));
     }
 
     public boolean onTouch(View view, MotionEvent event) {
@@ -288,49 +390,44 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
                 touching = true;
                 break;
             case MotionEvent.ACTION_MOVE:
-                int delta = lastY - (int) event.getY();
-
                 if (dragged != -1) {
                     dragView(event.getX(), event.getY());
                 } else {
                     if (event.getPointerCount() == 1) {
-
-                        scroll += delta;
-//                    clampScroll();
                         onScroll(event.getX(), event.getY());
-                        if (Math.abs(delta) > 2) {
-                            enabled = false;
-                        }
-//                        layout(getLeft(), getTop(), getRight(), getBottom());
                     } else {
-                        on2PointDraged(event);
+                        onScale(event);
                     }
                 }
                 lastX = (int) event.getX();
                 lastY = (int) event.getY();
-                lastDelta = delta;
                 break;
             case MotionEvent.ACTION_UP:
                 if (dragged != -1) {
                     View v = getChildAt(dragged);
+                    v.clearAnimation();
+
+                    float x = event.getX(), y = event.getY();
                     float v_width = v.getWidth();
                     float v_height = v.getHeight();
-                    float x = event.getX(), y = event.getY();
 
-                    x = Math.max(x, v_width / 2);
-                    x = Math.min(x, getWidth() - v_width / 2);
-                    y = Math.max(y, v_height / 2);
-                    y = Math.min(y, getHeight() - v_height / 2);
-                    x += getScrollX();
-                    y += getScrollY();
-                    v.clearAnimation();
-                    setChildBounds(dragged, x - v_width / 2, y - v_height / 2, x + v_width / 2, y + v_height / 2);
+                    x = Math.max(x, -mScrollX + v_width / 2);
+                    x = Math.min(x, getWidth() - mScrollX - v_width / 2);
+                    y = Math.max(y, -mScrollY + v_height / 2);
+                    y = Math.min(y, getHeight() - mScrollY - v_height / 2);
+
+                    setChildLocation(dragged, x, y);
                     //将移动了的view 的值存入对象
-                    mListDeviceInfo.get(dragged).setXY(x, y);
+                    mListDeviceInfo.get(dragged).setXY((x + mScrollX) / mScale, (y + mScrollY) / mScale);
                     hideDeleteView();
                     //重新定场强的样式
-                    initForceWave();
+                    try {
+                        initForceWave();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                     dragged = -1;
+                    setDraggedRectShow(false);
                 }
                 touching = false;
                 break;
@@ -351,46 +448,39 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
     }
 
     private void dragView(float x, float y) {
+
+        //判断是否进入删除区域
         onDragedInDeleteView((int) x, (int) y);
 
         View v = getChildAt(dragged);
+
         float v_width = v.getWidth();
         float v_height = v.getHeight();
 
-        x = Math.max(x, v_width / 2);
-        x = Math.min(x, getWidth() - v_width / 2);
-        y = Math.max(y, v_height / 2);
-        y = Math.min(y, getHeight() - v_height / 2);
+        x = Math.max(x, -mScrollX + v_width / 2);
+        x = Math.min(x, getWidth() - mScrollX - v_width / 2);
+        y = Math.max(y, -mScrollY + v_height / 2);
+        y = Math.min(y, getHeight() - mScrollY - v_height / 2);
 
-        x -= v_width / 4;
-        y -= v_height / 4;
-
-        x += getScrollX();
-        y += getScrollY();
-
-        v.layout(Math.round(x - v_width / 2),
-                Math.round(y - v_width / 2),
-                Math.round(x + v_width / 2),
-                Math.round(y + v_width / 2));
-
+        setChildLocation(dragged, x, y);
     }
 
     // EVENT HELPERS
     protected void animateDragged() {
         View v = getChildAt(dragged);
-        float x = getScrollX() + lastX;
-        float y = getScrollY() + lastY;
+        float x = lastX;
+        float y = lastY;
         float v_width = v.getWidth();
         float v_height = v.getHeight();
         v.layout(Math.round(x - v_width / 2), Math.round(y - v_height / 2), Math.round(x + v_width / 2), Math.round(y + v_height / 2));
         AnimationSet animSet = new AnimationSet(true);
-        ScaleAnimation scale = new ScaleAnimation(1, 1.5f, 1, 1.5f,
-                0.5f, 0.5f);
-        scale.setDuration(animT);
+//        ScaleAnimation scale = new ScaleAnimation(1, 1.5f, 1, 1.5f,
+//                0.5f, 0.5f);
+//        scale.setDuration(DURATION_ANIM);
         AlphaAnimation alpha = new AlphaAnimation(1, .5f);
-        alpha.setDuration(animT);
+        alpha.setDuration(DURATION_ANIM);
 
-        animSet.addAnimation(scale);
+//        animSet.addAnimation(scale);
         animSet.addAnimation(alpha);
         animSet.setFillEnabled(true);
         animSet.setFillAfter(true);
@@ -399,103 +489,57 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         v.startAnimation(animSet);
     }
 
-    public void scrollToTop() {
-        scroll = 0;
-    }
-
-    public void scrollToBottom() {
-        scroll = Integer.MAX_VALUE;
-        clampScroll();
-    }
-
     private void onScroll(float x, float y) {
-        if (mBgDrawable == null)
-            return;
-
         float moveX = x - lastX;
         float moveY = y - lastY;
-        int width = mBgDrawable.getBounds().width();
-        int height = mBgDrawable.getBounds().height();
 
-        int toX = (int) Math.min(Math.max(0, getScrollX() - moveX), width - getWidth());
-        int toY = (int) Math.min(Math.max(0, getScrollY() - moveY), height - getHeight());
+        mScrollX = (int) (mScrollX - moveX);
+        mScrollY = (int) (mScrollY - moveY);
 
-        scrollTo(toX, toY);
-        postInvalidate();
-    }
-
-    protected void clampScroll() {
-        int stretch = 3, overreach = getHeight() / 2;
-        int max = getMaxScroll();
-        max = Math.max(max, 0);
-
-        if (scroll < -overreach) {
-            scroll = -overreach;
-            lastDelta = 0;
-        } else if (scroll > max + overreach) {
-            scroll = max + overreach;
-            lastDelta = 0;
-        } else if (scroll < 0) {
-            if (scroll >= -stretch)
-                scroll = 0;
-            else if (!touching)
-                scroll -= scroll / stretch;
-        } else if (scroll > max) {
-            if (scroll <= max + stretch)
-                scroll = max;
-            else if (!touching)
-                scroll += (max - scroll) / stretch;
-        }
-    }
-
-    protected int getMaxScroll() {
-//        int rowCount = (int) Math.ceil((double) getChildCount() / colCount);
-//        int max = rowCount
-//                * childSize + (rowCount + 1) * padding - getHeight();
-        int max = getHeight();
-        return max;
+        contralScrollAndScale();
+        requestLayout();
     }
 
     public int getLastIndex() {
         return getIndexFromCoor(lastX, lastY);
     }
 
-
     public void setOnItemClickListener(AdapterView.OnItemClickListener l) {
         this.onItemClickListener = l;
     }
 
-    public void setBackground(Drawable drawable) {
+    private void contralScrollAndScale() {
+        int width_bg = (int) (getWidth() * mScale);
+        int height_bg = (int) (getHeight() * mScale);
 
-        if (drawable == null) {
-            setScaleY(1);
-            setScaleX(1);
-            scrollTo(0, 0);
-            layout(getLeft(), getTop(), getRight(), getBottom());
-            return;
+        if (width_bg >= getWidth()) {
+            if (mScrollX < 0)
+                mScrollX = 0;
+            else if (mScrollX + getWidth() > width_bg)
+                mScrollX = width_bg - getWidth();
+        } else {
+            if (mScrollX > 0)
+                mScrollX = 0;
+            else if (getWidth() + mScrollX - width_bg < 0)
+                mScrollX = width_bg - getWidth();
         }
-        int width = drawable.getIntrinsicWidth();
-        int height = drawable.getIntrinsicHeight();
-        if (width == 0)
-            width = getWidth();
-        if (height == 0)
-            height = getHeight();
 
-        if (width < getWidth() || height < getHeight()) {//当较小的时候，等比缩放
-            float scale = getWidth() * 1f / width;
-            scale = Math.max(scale, getHeight() * 1f / width);
-
-            drawable.setBounds(0, 0, Math.round(width * scale), Math.round(height * scale));
-
+        if (height_bg >= getHeight()) {
+            if (mScrollY < 0)
+                mScrollY = 0;
+            else if (mScrollY + getHeight() > height_bg)
+                mScrollY = height_bg - getHeight();
+        } else {
+            if (mScrollY > 0)
+                mScrollY = 0;
+            else if (getHeight() + mScrollY - height_bg < 0)
+                mScrollY = height_bg - getHeight();
         }
-        mBgDrawable = drawable;
-        postInvalidate();
-    }
 
-    @Override
-    public void setBackgroundResource(int resid) {
-        setBackground(getContext().getResources().getDrawable(resid));
-//        super.setBackgroundResource(resid);
+        if (mScale < .9F)
+            mScale = .9F;
+        else if (mScale > 2)
+            mScale = 2;
     }
 
     private double get2PointDistance(MotionEvent event) {
@@ -510,21 +554,21 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
     }
 
-    private void on2PointDraged(MotionEvent event) {
+    private void onScale(MotionEvent event) {
         double distance = get2PointDistance(event);
-        float scale = (float) (distance / lastDistance * getScaleX());
+        float scale = (float) (distance / lastDistance * mScale);
 
-        if (scale < 0.5f)
-            scale = 0.5f;
-        else if (scale > 4)
-            scale = 4;
+        mScrollX += (event.getX() + mScrollX) * (scale / mScale - 1);
+        mScrollY += (event.getY() - mScrollY) * (scale / mScale - 1);
 
-        if (getScrollX() != scale) {
-            setScaleX(scale);
-            setScaleY(scale);
+        if (mScale != scale) {
+            mScale = scale;
+            lastDistance = distance;
         }
 
-        lastDistance = distance;
+        contralScrollAndScale();
+
+        requestLayout();
     }
 
     @Override
@@ -533,7 +577,7 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         super.onScrollChanged(l, t, oldl, oldt);
     }
 
-    public List<DeviceLocation> getmListDeviceInfo() {
+    public List<DeviceLocation> getListDeviceInfo() {
         return mListDeviceInfo;
     }
 
@@ -557,7 +601,7 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
      * 将设备信息添加到位置列表中
      */
     private DeviceLocation addDeviceLocation(WifiDevice device) {
-        return addDeviceLocation(device, getWidth() / 2 + getScrollX(), getHeight() / 2 + getScrollY());
+        return addDeviceLocation(device, (int) (getWidth() / 2 + mScrollX), (int) (getHeight() / 2 + mScrollY));
     }
 
     private DeviceLocation addDeviceLocation(WifiDevice device, int x, int y) {
@@ -574,23 +618,37 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         return location;
     }
 
-    private TextView createDisplayView(DeviceLocation d) {
+    private View createDisplayView(DeviceLocation d) {
         TextView child = new TextView(getContext());
-        child.setGravity(Gravity.CENTER);
         Drawable drawable = getResources().getDrawable(App.RESID_WIFI_DEVICE[d.getType()]).mutate();
         drawable.setBounds(0, 0,
-                (int) (childSize * drawable.getIntrinsicWidth() / drawable.getIntrinsicHeight()), (int) childSize);
+                (SIZE_CHILD * drawable.getMinimumWidth() / drawable.getMinimumHeight()), SIZE_CHILD);
+        child.setGravity(Gravity.CENTER);
         drawable = DrawableCompat.wrap(drawable);
         child.setCompoundDrawables(null, drawable, null, null);
+        child.setGravity(Gravity.CENTER);
+        child.setMaxLines(1);
+        child.setEllipsize(TextUtils.TruncateAt.END);
+        child.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9);
+        String title;
         if (d.getWifiDevice() == null) {
-            child.setText(d.getMac());
+            title = d.getMac();
             child.setEnabled(false);
             drawable.setTint(Color.DKGRAY);
         } else {
-            child.setText(d.getWifiDevice().getName());
+            title = d.getWifiDevice().getName();
         }
-        child.layout((int) (d.getX() - childSize / 2), (int) (d.getY() - childSize / 2),
-                (int) (d.getX() + childSize), (int) (d.getY() + childSize));
+        child.setText(title);
+        child.setBackgroundResource(R.drawable.round_rect_child);
+
+        child.getPaint().getTextBounds(title, 0, title.length(), mTextBoundsRect);
+        float x = d.getX() * mScale - mScrollX;
+        float y = d.getY() * mScale - mScrollY;
+        float width = Math.max(drawable.getBounds().width(), mTextBoundsRect.width());
+        float height = drawable.getBounds().height() + mTextBoundsRect.height() + child.getCompoundDrawablePadding() + SIZE_CHILD_TEXT;
+        child.setCompoundDrawablePadding(0);
+        child.layout((int) (x - width / 2), (int) (y - height / 2),
+                (int) (x + width / 2), (int) (y + height / 2));
         return child;
     }
 
@@ -616,11 +674,12 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         initForceWave();
     }
 
-
     private void initForceWave() {
+        cleanPath();
 
         if (mListDeviceInfo == null || mListDeviceInfo.isEmpty())
             return;
+
         float cX = -1, cY = -1;//中心点坐标
 
         for (DeviceLocation device : mListDeviceInfo) {
@@ -632,158 +691,292 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         }
 
         if (cX == -1 || cY == -1 || mListDeviceInfo.size() - 1 == 0) {
-            cleanPath();
             postInvalidate();
             return;
         }
 
         ArrayList<DeviceLocation> effectPoints = new ArrayList<>();
         for (DeviceLocation d : mListDeviceInfo) {
-            if (d.getType() == App.TYPE_DEVICE_WIFI || d.getWifiDevice() == null || d.getWifiDevice().getRssi() == 100)
+            if (d.getType() == App.TYPE_DEVICE_WIFI || d.getWifiDevice() == null)
                 continue;
             effectPoints.add(d);
         }
 
+        if (effectPoints.isEmpty()) {
+            return;
+        }
+
+        ArrayList<Path> arrPath = null;
         switch (effectPoints.size()) {
             case 0:
-                cleanPath();
                 break;
             case 1:
-                mPath0 = creaetPathOnePoints(effectPoints, 0, cX, cY);
-                mPath30 = creaetPathOnePoints(effectPoints, 30, cX, cY);
-                mPath50 = creaetPathOnePoints(effectPoints, 50, cX, cY);
-                mPath80 = creaetPathOnePoints(effectPoints, 80, cX, cY);
+                arrPath = createPathOnePoints(effectPoints, cX, cY);
                 break;
-            case 2:
-                mPath0 = creaetPathTwoPoints(effectPoints, 0, cX, cY);
-                mPath30 = creaetPathTwoPoints(effectPoints, 30, cX, cY);
-                mPath50 = creaetPathTwoPoints(effectPoints, 50, cX, cY);
-                mPath80 = creaetPathTwoPoints(effectPoints, 80, cX, cY);
-                break;
+//            case 2:
+//                arrPath = createPathTwoPoints(effectPoints, cX, cY);
+//                break;
             default:
-                mPath0 = creaetPathMorePoints(effectPoints, 0, cX, cY);
-                mPath30 = creaetPathMorePoints(effectPoints, 30, cX, cY);
-                mPath50 = creaetPathMorePoints(effectPoints, 50, cX, cY);
-                mPath80 = creaetPathMorePoints(effectPoints, 80, cX, cY);
+                arrPath = createPathMorePoints1(effectPoints, cX, cY);
                 break;
         }
 
+
+        if (arrPath != null) {
+
+//            for (int i = 0; i < arrPath.size() - 1; i++) {//扣
+//                arrPath.get(i).op(arrPath.get(i + 1), Path.Op.DIFFERENCE);
+//                arrPath.get(i).close();
+//            }
+
+            Bitmap bitmap = Bitmap.createBitmap(getWidth(), getHeight(), Bitmap.Config.ARGB_4444);
+            Canvas canvas = new Canvas(bitmap);
+            {//只展示房间内的信号强度
+                Path path = new Path();
+                path.addRoundRect(0, 0, getWidth(), getHeight(), RADIUS_ROUND_RECT, RADIUS_ROUND_RECT, Path.Direction.CCW);
+                canvas.clipPath(path);
+            }
+
+            for (int i = 0; i < ARR_DISTANCE_RATE.length; i++) {
+                Path path = arrPath.get(i);
+                mPathPaint.setColor(COLOR_PATH_RANGE[i]);
+                canvas.drawPath(path, mPathPaint);
+            }
+
+            mDrawableWave = new BitmapDrawable(getResources(), bitmap);
+            mDrawableWave.setBounds(-mScrollX, -mScrollY,
+                    (int) (getWidth() * mScale - mScrollX),
+                    (int) (getHeight() * mScale - mScrollY));
+
+        }
 
         postInvalidate();
     }
 
+
     private void cleanPath() {
-        mPath0 = null;
-        mPath30 = null;
-        mPath50 = null;
-        mPath80 = null;
+        if (mDrawableWave != null) {
+            mDrawableWave.getBitmap().recycle();
+            mDrawableWave = null;
+            System.gc();
+        }
     }
 
-    private Path creaetPathOnePoints(List<DeviceLocation> list, float rate, float cX, float cY) {
-        Path path = new Path();
+    private BitmapDrawable mDrawableWave;
+
+    private ArrayList<Path> createPathOnePoints(List<DeviceLocation> list, float cX, float cY) {
 
         DeviceLocation d = list.get(0);
-        double distance = getDistanceIn2Points(cX, cY, d.getX(), d.getY());
 
-        double R = distance;
-        R /= (100 - d.getWifiDevice().getRssi());
-        R *= (100 - rate);
+        double R = getDistanceIn2Points(cX, cY, d.getX(), d.getY());
+        double distance = CommUtils.dbm2Distance(d.getWifiDevice().getRssi());
 
-        path.addCircle(cX, cY, (float) R, Path.Direction.CW);
+        ArrayList<Path> arrayList = new ArrayList<>(ARR_DISTANCE_RATE.length);
 
-        return path;
+        for (int i = 0; i < ARR_DISTANCE_RATE.length; i++) {
+            Path path = new Path();
+
+            double nR = R * ARR_DISTANCE_RATE[i] / distance;
+            path.addCircle(cX, cY, (float) nR, Path.Direction.CW);
+            path.close();
+
+            arrayList.add(path);
+
+        }
+
+        return arrayList;
     }
 
-    private Path creaetPathTwoPoints(List<DeviceLocation> list, float rate, float cX, float cY) {
-        Path path = new Path();
+    private ArrayList<Path> createPathTwoPoints(List<DeviceLocation> list, float cX, float cY) {
+        ArrayList<Path> arrayList = new ArrayList<>();
 
         ArrayList<PointF> points = new ArrayList<>(list.size());
         ArrayList<Double> rs = new ArrayList<>(list.size());
-        for (DeviceLocation d : list) {
-            double distance = getDistanceIn2Points(cX, cY, d.getX(), d.getY());
-            double R = distance / (100 - d.getWifiDevice().getRssi()) * (100 - rate);
-
-            rs.add(R);
-
-            double x = 100 - rate;
-            x /= 100 - d.getWifiDevice().getRssi();
-            x *= d.getX() - cX;
-            x = x + cX;
-
-            double y = 100 - rate;
-            y /= 100 - d.getWifiDevice().getRssi();
-            y *= d.getY() - cY;
-            y = y + cY;
-
-            points.add(new PointF((float) x, (float) y));
-        }
-
 
         //先增加最小半径
-        double minR = Integer.MAX_VALUE;
+        double minR;
+        for (int i = 0; i < ARR_DISTANCE_RATE.length; i++) {
+            rs.clear();
+            points.clear();
 
-        for (Double r : rs) {
-            if (minR > r)
-                minR = r;
+            Path path = new Path();
+
+            for (DeviceLocation d : list) {
+                double R = getDistanceIn2Points(cX, cY, d.getX(), d.getY());
+                double distance = CommUtils.dbm2Distance(d.getWifiDevice().getRssi());
+                double rate = ARR_DISTANCE_RATE[i] / distance;
+                double nR = R * rate;
+
+                rs.add(nR);
+
+
+                double x = d.getX() - cX;
+                x *= rate;
+                x += cX;
+                double y = d.getY() - cY;
+                y *= rate;
+                y += cY;
+
+                points.add(new PointF((float) x, (float) y));
+            }
+
+            minR = Integer.MAX_VALUE;
+            for (double r : rs) {
+                if (minR > r)
+                    minR = r;
+            }
+
+            path.addCircle(cX, cY, (float) minR, Path.Direction.CW);
+
+            //其它点增加到中心点为直径的圆
+            for (int j = 0; j < points.size(); j++) {
+                double R = rs.get(j);
+                if (R <= minR)
+                    continue;
+
+                PointF p = points.get(j);
+
+                float oX = (cX + p.x) / 2;
+                float oY = (cY + p.y) / 2;
+                double nR = getDistanceIn2Points(oX, oY, p.x, p.y);
+                path.addCircle(oX, oY, (float) nR, Path.Direction.CW);
+            }
+            path.close();
+
+            arrayList.add(path);
         }
-        path.addCircle(cX, cY, (float) minR, Path.Direction.CW);
 
-        //其它点增加到中心点为直径的圆
-        for (int i = 0; i < points.size(); i++) {
-            double R = rs.get(i);
-            if (R <= minR)
-                continue;
+        return arrayList;
+    }
 
-            PointF p = points.get(i);
+    private ArrayList<Path> createPathMorePoints1(List<DeviceLocation> list, float cX, float cY) {
+        ArrayList<Path> arrayList = new ArrayList<>();
 
-            float oX = (cX + p.x) / 2;
-            float oY = (cY + p.y) / 2;
-            double nR = getDistanceIn2Points(oX, oY, p.x, p.y);
-            path.addCircle(oX, oY, (float) nR, Path.Direction.CW);
+        for (DeviceLocation d : list) {
+            d.setAngle((float) getRelativeAngle(cX, cY, d.getX(), d.getY()));
+        }
+
+        DeviceLocation[] arrLocation = new DeviceLocation[list.size()];
+        arrLocation = list.toArray(arrLocation);
+        Arrays.sort(arrLocation);
+        PointF[] tempSameValuePoints = new PointF[arrLocation.length];
+        for (float v : ARR_DISTANCE_RATE) {
+
+            //获取等高线的点
+            for (int j = 0; j < arrLocation.length; ++j) {//收集最短半径和所有的点坐标
+                DeviceLocation d = arrLocation[j];
+                double distance = CommUtils.dbm2Distance(d.getWifiDevice().getRssi());
+                float rate = (float) (v / distance);
+
+                float x = d.getX() - cX;
+                x *= rate;
+                x += cX;
+                float y = d.getY() - cY;
+                y *= rate;
+                y += cY;
+
+                if (tempSameValuePoints[j] == null)
+                    tempSameValuePoints[j] = new PointF(x, y);
+                else
+                    tempSameValuePoints[j].set(x, y);
+            }
+
+            //获取绘制贝塞尔曲线的点并增加辅助点
+            ArrayList<PointF> arrPoints = new ArrayList();
+            int addnum = 0;
+            for (int i = 0, j; i < tempSameValuePoints.length; ++i) {
+                j = i + 1;
+                if (j == tempSameValuePoints.length)
+                    j = 0;
+
+                float angle1 = arrLocation[i].getAngle();
+                float angle2 = arrLocation[j].getAngle();
+
+                PointF f1 = tempSameValuePoints[i];
+                PointF f2 = tempSameValuePoints[j];
+
+                arrPoints.add(f1);
+
+                if (angle2 > angle1) {
+                    if (angle2 - angle1 < 45)
+                        continue;
+                } else if (angle2 + 360 - angle1 < 45) {
+                    continue;
+                }
+
+                //add points
+                double R1 = getDistanceIn2Points(cX, cY, f1.x, f1.y);
+                double R2 = getDistanceIn2Points(cX, cY, f1.x, f2.y);
+
+                if (angle2 > angle1)
+                    addnum = Math.round((angle2 - angle1) / 45);
+                else
+                    addnum = Math.round((angle2 + 360 - angle1) / 45);
+
+                if (i + 1 == tempSameValuePoints.length)
+                    pushPointsToArray(cX, cY, R1, R2, angle1, angle2 + 360, addnum, arrPoints);
+                else
+                    pushPointsToArray(cX, cY, R1, R2, angle1, angle2, addnum, arrPoints);
+            }
+
+
+            Path path = createPathByBezier(arrPoints, cX, cY);
+            arrayList.add(path);
+        }
+
+        return arrayList;
+    }
+
+    /**
+     * @param arrPoints 顺时针旋转的坐标
+     * @param cX        圆心坐标X
+     * @param cY        圆心坐标Y
+     * @return 生成连接每个点的贝塞尔曲线的path
+     */
+    private Path createPathByBezier(ArrayList<PointF> arrPoints, float cX, float cY) {
+        //用贝塞尔曲线连接所有点并闭合
+        Path path = new Path();
+        path.moveTo(arrPoints.get(0).x, arrPoints.get(0).y);
+
+        path.moveTo(arrPoints.get(1).x, arrPoints.get(1).y);
+        int length = arrPoints.size();
+        for (int i = 2; i < length + 2; i++) {
+
+            PointF p1 = arrPoints.get((i - 2) % length);
+            PointF p2 = arrPoints.get((i - 1) % length);
+            PointF p3 = arrPoints.get(i % length);
+            PointF p4 = arrPoints.get((i + 1) % length);
+
+            float pX = p2.x + (p3.x - p1.x) / 5;
+            float pY = p2.y + (p3.y - p1.y) / 5;
+            float nX = p3.x - (p4.x - p2.x) / 5;
+            float nY = p3.y - (p4.y - p2.y) / 5;
+            path.cubicTo(pX, pY, nX, nY, p3.x, p3.y);
         }
         path.close();
         return path;
     }
 
-    private Path creaetPathMorePoints(List<DeviceLocation> list, float rate, float cX, float cY) {
-        Path path = new Path();
+    /**
+     * 将增加的点推到arrPoints中
+     *
+     * @param arrPoints 不能为null，用来接收结果对象
+     */
+    private void pushPointsToArray(float cX, float cY, double radius1, double radius2, float angle1, float angle2, int addnum, ArrayList<PointF> arrPoints) {
+        float perAngle = (angle2 - angle1) / (addnum + 1);
+        double perRadius = (radius2 - radius1) / (addnum + 1);
 
-        ArrayList<PointF> points = new ArrayList<>(list.size());
-
-        double minR = Integer.MAX_VALUE;
-        for (DeviceLocation d : list) {
-            double distance = getDistanceIn2Points(cX, cY, d.getX(), d.getY());
-            double R = distance / (100 - d.getWifiDevice().getRssi()) * (100 - rate);
-
-            minR = Math.min(R, minR);
-            double x = 100 - rate;
-            x /= 100 - d.getWifiDevice().getRssi();
-            x *= d.getX() - cX;
-            x = x + cX;
-
-            double y = 100 - rate;
-            y /= 100 - d.getWifiDevice().getRssi();
-            y *= d.getY() - cY;
-            y = y + cY;
-
-            points.add(new PointF((float) x, (float) y));
+        for (int j = 1; j < addnum + 1; j++) {//计算要添加的辅助点，渐进前后两个点之间的半径角度
+            double Rt = perRadius * j + radius1;
+            float angle = angle1 + j * perAngle;
+            float x = (float) Math.cos(angle / 180 * Math.PI);
+            x *= Rt;
+            x += cX;
+            float y = (float) Math.sin(angle / 180 * Math.PI);
+            y *= Rt;
+            y += cY;
+            arrPoints.add(new PointF(x, y));
         }
-
-        path.addCircle(cX, cY, (float) minR, Path.Direction.CW);
-
-        for (int i = 0; i < points.size() - 2; ++i) {
-            for (int j = i + 1; j < points.size() - 1; j++) {
-                for (int k = j + 1; k < points.size(); k++) {
-                    if (isInLine(points.get(i), points.get(j), points.get(k)))
-                        continue;
-                    path.addPath(getPathBy3Points(points.get(i), points.get(j), points.get(k)));
-                }
-            }
-        }
-
-
-        path.close();
-        return path;
     }
 
     /**
@@ -867,19 +1060,28 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
      */
     public interface OnDragListener {
         void onDraged(DeviceLocation deviceLocation, float x, float y);
+
     }
 
     private void initPaint() {
         mPathPaint = new Paint();
         mPathPaint.setStyle(Paint.Style.FILL);
         mPathPaint.setColor(0x6655bb44);
-        mPathPaint.setTextSize(UnitUtils.dip2px(getContext(), 12));
+        mPathPaint.setTextSize(SIZE_CHILD_TEXT);
         mPathPaint.setTextScaleX(0.8f);
         mPathPaint.setTextLocale(Locale.CHINESE);
         mPathPaint.setTypeface(Typeface.DEFAULT_BOLD);
         //去锯齿
         mPathPaint.setAntiAlias(true);
         mPathPaint.setStrokeWidth(5); //设置线条的宽度
+
+        mPathDropEnable = new Paint();
+        mPathDropEnable.setStyle(Paint.Style.STROKE);
+        mPathDropEnable.setColor(getResources().getColor(R.color.colorPrimary));
+        mPathDropEnable.setStrokeWidth(UnitUtils.dip2px(getContext(), 2));
+        mPathDropEnable.setAntiAlias(true);
+        //DashPathEffect是Android提供的虚线样式API，具体的使用可以参考下面的介绍
+        mPathDropEnable.setPathEffect(new DashPathEffect(new float[]{2, 3}, .5f));
     }
 
     private void showDeleteView() {
@@ -911,13 +1113,14 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
     }
 
     private boolean isInDeleteState(int x, int y) {
-        System.err.println(String.format("(%d,%d),", x, y) + mDeleteRect.toString());
         return mDeleteRect.contains(x, y);
     }
 
+    /**
+     * 判断是否删除
+     */
     private void onDragedInDeleteView(int x, int y) {
         if (mDeleteTextView != null) {
-//            mDeleteTextView.setBackgroundColor(isInDeleteState(x, y) ? 0x66ff0000 : 0x6600aa00);
             mDeleteTextView.setEnabled(!isInDeleteState(x, y));
         }
     }
@@ -940,9 +1143,10 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
     private void drawSketchMap(Canvas canvas) {
         mSketchMapDrawable.draw(canvas);
         Rect rect = mSketchMapDrawable.getBounds();
-        mPathPaint.setColor(Color.DKGRAY);
+        mPathPaint.setColor(Color.WHITE);
         canvas.drawText(mStrIntensity[0], rect.left - mRectStrSkechMap.width() - 1, rect.bottom, mPathPaint);
         canvas.drawText(mStrIntensity[1], rect.right + 1, rect.bottom, mPathPaint);
+
 
     }
 
@@ -952,4 +1156,65 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         mRectStrSkechMap = new Rect();
         mPathPaint.getTextBounds(mStrIntensity[0], 0, mStrIntensity[0].length(), mRectStrSkechMap);
     }
+
+    public void setDraggedRectShow(boolean isShowing) {
+        mIsDraggedRectShowing = isShowing;
+    }
+
+    /**
+     * 判断两个矩形是否相交
+     ***/
+    private boolean isRectCoverRect(Rect r1, Rect r2) {
+        if (r1.right <= r2.left || r1.left >= r2.right || r1.top >= r2.bottom || r1.bottom <= r2.top)
+            return false;
+
+        return true;
+    }
+
+    /**
+     * -90~270
+     */
+    private static double getRelativeAngle(float cx, float cy, float dx, float dy) {
+
+        float x = dx - cx;
+        float y = dy - cy;
+
+        double result = y / x;
+        result = Math.atan(result);
+        result = Math.toDegrees(result);
+
+        if (x < 0) {
+            result += 180;
+        } else if (y < 0)
+            result += 360;
+
+        return result;
+    }
+
+    private void reset() {
+        //清空过去的数据，还原
+        mScale = 1;
+        mScrollX = 0;
+        mScrollY = 0;
+
+        removeAllViews();
+
+        cleanPath();
+
+        if (mListDeviceInfo != null)
+            mListDeviceInfo.clear();
+
+        requestLayout();
+    }
+
+    private void importData(List<DeviceLocation> array) {
+        reset();
+        mListDeviceInfo = array;
+        initForceWave();
+    }
+
+    private List<DeviceLocation> exportData() {
+        return mListDeviceInfo;
+    }
+
 }

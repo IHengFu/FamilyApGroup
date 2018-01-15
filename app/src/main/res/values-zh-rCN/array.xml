@@ -19,4 +19,9 @@
         <item>house/house_base.json</item>
         <item>house/house1.json</item>
     </string-array>
+
+    <string-array name="showStyle">
+        <item>点强图</item>
+        <item>能量图</item>
+    </string-array>
 </resources>

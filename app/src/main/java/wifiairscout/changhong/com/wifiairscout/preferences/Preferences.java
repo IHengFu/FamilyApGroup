@@ -25,6 +25,8 @@ public class Preferences {
     public static final String KEY_MAX_MSG_BODY = "max_msg_body_len";
     public static final String KEY_HOUSE_STYLE = "house style";
 
+    public static final String KEY_MAP_SHOW_STYLE = "map show style";
+    public static final String KEY_RSSI_LIMIT_VALUE = "rssi limit value";
 
     private Preferences(Context context) {
         sharedPreferences = context.getSharedPreferences(SETTING, Context.MODE_PRIVATE);
@@ -81,6 +83,22 @@ public class Preferences {
 
     public void setMaxMsgBody(short value) {
         saveInt(KEY_MAX_MSG_BODY, value);
+    }
+
+    public int getMapShowStyle() {
+        return getInt(KEY_MAP_SHOW_STYLE, 0);
+    }
+
+    public void setMapShowStyle(int value) {
+        saveInt(KEY_MAP_SHOW_STYLE, value);
+    }
+
+    public int getRssiLimitValue() {
+        return getInt(KEY_RSSI_LIMIT_VALUE, -100);
+    }
+
+    public void setRssiLimitValue(int value) {
+        saveInt(KEY_RSSI_LIMIT_VALUE, value);
     }
 
     public static Preferences getIntance(Context context) {

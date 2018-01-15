@@ -41,11 +41,12 @@ class StartActivity : AppCompatActivity() {
     private var currentChannel = 0.toByte()
     private var arrayDevice: ArrayList<WifiDevice>? = null
 
+    private var mIsWaitForNextPage = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.layout_start)
         init()
-
     }
 
     fun init() {

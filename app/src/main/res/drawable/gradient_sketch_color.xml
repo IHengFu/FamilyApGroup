@@ -1,14 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <size
-        android:width="100dp"
-        android:height="10dp" />
-    <gradient
-        android:angle="0"
-        android:centerColor="@color/yellow"
-        android:endColor="@color/red"
-        android:startColor="@color/green" />
-    <stroke
-        android:width="1px"
-        android:color="@android:color/darker_gray" />
-</shape>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <color android:color="@color/colorAccent"/>
+    </item>
+    <item>
+        <shape >
+            <size
+                android:width="100dp"
+                android:height="10dp" />
+            <gradient
+                android:angle="0"
+                android:centerColor="#33ffff00"
+                android:endColor="#11ff0000"
+                android:startColor="#5500ff00" />
+            <stroke
+                android:width="1px"
+                android:color="@android:color/darker_gray" />
+        </shape>
+    </item>
+</layer-list>

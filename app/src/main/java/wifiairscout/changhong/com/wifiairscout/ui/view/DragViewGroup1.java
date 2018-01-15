@@ -142,7 +142,7 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
         setChildrenDrawingOrderEnabled(true);
 
         SIZE_CHILD = UnitUtils.dip2px(getContext(), 30);
-        SIZE_CHILD_TEXT = (int) UnitUtils.dip2px(getContext(), 12);
+        SIZE_CHILD_TEXT = UnitUtils.dip2px(getContext(), 12);
         RADIUS_ROUND_RECT = UnitUtils.dip2px(getContext(), 3);
 
         initPaint();
