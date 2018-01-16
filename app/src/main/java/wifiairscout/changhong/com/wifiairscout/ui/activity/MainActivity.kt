@@ -1,6 +1,5 @@
 package wifiairscout.changhong.com.wifiairscout.ui.activity
 
-import android.app.ProgressDialog
 import android.content.Intent
 import android.graphics.Rect
 import android.os.Bundle
@@ -19,12 +18,16 @@ import org.greenrobot.eventbus.ThreadMode
 import wifiairscout.changhong.com.wifiairscout.App
 import wifiairscout.changhong.com.wifiairscout.R
 import wifiairscout.changhong.com.wifiairscout.model.HouseData
+import wifiairscout.changhong.com.wifiairscout.model.MessageData
+import wifiairscout.changhong.com.wifiairscout.model.MessageDataFactory
 import wifiairscout.changhong.com.wifiairscout.model.WifiDevice
-import wifiairscout.changhong.com.wifiairscout.model.response.GetClientResponse
-import wifiairscout.changhong.com.wifiairscout.model.response.GetClientStatusResponse
+import wifiairscout.changhong.com.wifiairscout.model.response.*
 import wifiairscout.changhong.com.wifiairscout.preferences.Preferences
 import wifiairscout.changhong.com.wifiairscout.service.StartService
 import wifiairscout.changhong.com.wifiairscout.task.GenericTask
+import wifiairscout.changhong.com.wifiairscout.task.TaskListener
+import wifiairscout.changhong.com.wifiairscout.task.TaskResult
+import wifiairscout.changhong.com.wifiairscout.task.UDPTask
 import wifiairscout.changhong.com.wifiairscout.ui.adapter.DeviceViewPagerAdapter
 import wifiairscout.changhong.com.wifiairscout.ui.view.DragViewGroup
 import wifiairscout.changhong.com.wifiairscout.ui.view.DragViewPager
@@ -32,7 +35,7 @@ import wifiairscout.changhong.com.wifiairscout.utils.CommUtils
 import wifiairscout.changhong.com.wifiairscout.utils.FileUtils
 import kotlin.collections.ArrayList
 
-class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener ,View.OnClickListener{
+class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClickListener {
 
 
     private val viewPager: DragViewPager<WifiDevice> by lazy { findViewById<DragViewPager<WifiDevice>>(R.id.vp_device) }
@@ -41,6 +44,9 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener ,View.O
     private val mArrayDevices = ArrayList<WifiDevice>()
 
     private var mUdpTask: GenericTask? = null
+    private var mOptimization: GenericTask? = null
+
+    private var mCurChannel = -1
 
     companion object {
         const val REQUEST_OPRATION = 2 //设置请求的code
@@ -48,7 +54,6 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener ,View.O
 
     private val deviceAdapter: DeviceViewPagerAdapter by lazy { DeviceViewPagerAdapter(this, mArrayDevices) }
 
-    private var mProgressDialog: ProgressDialog? = null
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
         return true
@@ -60,11 +65,10 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener ,View.O
         setSupportActionBar(toolbar)
         toolbar.setNavigationIcon(R.mipmap.ic_setting)
         EventBus.getDefault().register(this)
-        if (!App.sTest){
+        if (!App.sTest) {
             startService(Intent(this, StartService::class.java))
-            mProgressDialog = ProgressDialog.show(this, null, getString(R.string.notice_download_data), true, false)
-        }
-        else {
+            showProgressDialog(getString(R.string.notice_download_data), false, null)
+        } else {
             mArrayDevices.addAll(getDevices())
         }
 
@@ -82,7 +86,7 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener ,View.O
         })
 
         CommUtils.transparencyBar(this);
-//        StartService.startServcie(this, StartService.ACTION_LOAD_DEVICE)
+        StartService.startServcie(this, StartService.ACTION_LOAD_CUR_CHANNEL)
 
         startFlushRssi()
 
@@ -115,11 +119,12 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener ,View.O
         stopFlushRssi()
         super.onDestroy()
     }
+
     override fun onClick(p0: View?) {
-       when(p0?.id){
-            R.id.btn_optimization->startActivity(Intent(this,ChannelConditionActivity::class.java))
-           R.id.btn_optimization->doOptimization()
-       }
+        when (p0?.id) {
+            R.id.btn_optimization -> startActivity(Intent(this, ChannelConditionActivity::class.java))
+            R.id.btn_optimization -> doScan()
+        }
     }
 
     fun getDevices(): ArrayList<WifiDevice> {
@@ -183,10 +188,7 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener ,View.O
         mArrayDevices.addAll(event.devices)
         deviceAdapter.notifyDataSetChanged()
 
-        if (mProgressDialog != null) {
-            mProgressDialog?.dismiss()
-            mProgressDialog = null
-        }
+        hideProgressDialog()
     }
 
 
@@ -226,6 +228,11 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener ,View.O
         mArrayDevices.add(event)
         layout_apartment.refresh()
         deviceAdapter.notifyDataSetChanged()
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
+    fun onDataSynEvent(event: GetChannelResponse) {
+        mCurChannel = event.channel.toInt()
     }
 
     override fun onBackPressed() {
@@ -334,7 +341,93 @@ class MainActivity : AppCompatActivity(), ViewPager.OnPageChangeListener ,View.O
 //        layout_apartment.setHouseData(housedata)
     }
 
-    private fun doOptimization() {
-        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+
+    /**扫描*/
+    private fun doScan() {
+        mOptimization = UDPTask().execute(MessageDataFactory.doScan(false), mScanListener)
+    }
+
+    /**优化*/
+    private fun doOptimization(channel: Int) {
+        mOptimization = UDPTask().execute(MessageDataFactory.setChannel(channel), mSetChannelListener)
+    }
+
+    private val mSetChannelListener = object : TaskListener<BaseResponse> {
+        override fun getName(): String? {
+            return null
+        }
+
+        override fun onPreExecute(task: GenericTask) {
+            showProgressDialog(getString(R.string.changeChannel), true, null)
+        }
+
+        override fun onPostExecute(task: GenericTask, result: TaskResult) {
+            hideProgressDialog()
+            if (result != TaskResult.OK) {
+                showToast(task.exception?.message)
+            }
+        }
+
+        override fun onProgressUpdate(task: GenericTask?, param: BaseResponse?) {
+            showToast(getString(R.string.optimizationComplete))
+            StartService.startServcie(this@MainActivity, StartService.ACTION_LOAD_CUR_CHANNEL)
+        }
+
+        override fun onCancelled(task: GenericTask?) {
+            hideProgressDialog()
+        }
+
+    }
+    /**
+     * 扫描结果反馈
+     */
+    private val mScanListener = object : TaskListener<MessageData> {
+        override fun getName(): String? {
+            return null
+        }
+
+        override fun onPreExecute(task: GenericTask) {
+            showProgressDialog(getString(R.string.onScanChanneling), true, null)
+        }
+
+        override fun onPostExecute(task: GenericTask, result: TaskResult) {
+            hideProgressDialog()
+            if (result != TaskResult.OK) {
+                showToast(task.exception?.message)
+            }
+        }
+
+        override fun onProgressUpdate(task: GenericTask, param: MessageData?) {
+            if (param == null)
+                return
+            val response = ScanResponse(param?.msgBody)
+            val num_channel = IntArray(13)
+            for (wifiDevice in response.listAp) {
+                num_channel[wifiDevice.channel!! - 1]++
+            }
+
+            var minWeight = java.lang.Float.MAX_VALUE
+            var temp: Float
+            var bestChannel: Int = 0
+            for (i in num_channel.indices) {
+                temp = num_channel[i].toFloat()
+                if (i > 0)
+                    temp += 0.3f * num_channel[i - 1]
+                if (i < num_channel.size - 1)
+                    temp += 0.3f * num_channel[i + 1]
+                if (minWeight > temp) {
+                    minWeight = temp
+                    bestChannel = i
+                }
+            }
+            if (mCurChannel == bestChannel)
+                showToast(getString(R.string.noticeCurChannelBest))
+            else
+                doOptimization(bestChannel)
+        }
+
+        override fun onCancelled(task: GenericTask) {
+            hideProgressDialog()
+        }
     }
 }

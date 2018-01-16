@@ -41,4 +41,16 @@
     <string name="no_data">无数据</string>
     <string name="start_scan">启动测试</string>
     <string name="optimization">一键优化</string>
+    <string name="onScanChanneling">扫描信道信息中……</string>
+    <string name="channel2_4">2.4G信道信息</string>
+    <string name="channel5_0">5.0G信道信息</string>
+    <string name="changeChannel">切换信道</string>
+    <string name="optimizationComplete">优化完成</string>
+    <string name="optimizationAdvice">优化建议</string>
+    <string name="tabChannelCondition">通道使用情况：</string>
+    <string name="noticeCurChannelBest">当前信道为最佳信道</string>
+    <string name="adviceChannel">建议使用%d信道</string>
+    <string name="formatChannalUsageCondition">"信道%d:%d"</string>
+
+
 </resources>

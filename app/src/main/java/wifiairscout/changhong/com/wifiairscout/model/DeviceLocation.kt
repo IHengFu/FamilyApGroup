@@ -12,7 +12,10 @@ data class DeviceLocation(
         @DatabaseField(columnName = "x") var x: Float,
         @DatabaseField(columnName = "y") var y: Float,
         @DatabaseField(columnName = "mac") var mac: String,
-        @DatabaseField(columnName = "type") var type: Byte) : Comparable<DeviceLocation> {
+        @DatabaseField(columnName = "type") var type: Byte,
+        @DatabaseField(columnName = "group") var group: Int = 0) : Comparable<DeviceLocation> {
+
+    constructor() : this(0, 0f, 0f, "", 0, 0)
 
     override fun compareTo(other: DeviceLocation): Int {
         return (angle - other.angle).toInt()
@@ -20,7 +23,7 @@ data class DeviceLocation(
 
     var channel: Byte = 0
     var intensity: Byte = 0
-    var WifiDevice: WifiDevice? = null
+    var wifiDevice: WifiDevice? = null
 
     var angle: Float = 0f
 
@@ -31,7 +34,7 @@ data class DeviceLocation(
     }
 
     override fun toString(): String {
-        return "DeviceLocation(id=$id, x=$x, y=$y, mac='$mac', type=$type, channel=$channel, intensity=$intensity, WifiDevice=$WifiDevice, angle=$angle)"
+        return "DeviceLocation(id=$id, x=$x, y=$y, mac='$mac', type=$type, channel=$channel, intensity=$intensity, WifiDevice=$wifiDevice, angle=$angle)"
     }
 
 }

@@ -12,12 +12,20 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.util.ArrayList;
 
 import wifiairscout.changhong.com.wifiairscout.R;
+import wifiairscout.changhong.com.wifiairscout.model.MessageData;
 import wifiairscout.changhong.com.wifiairscout.model.MessageDataFactory;
 import wifiairscout.changhong.com.wifiairscout.model.WifiDevice;
+import wifiairscout.changhong.com.wifiairscout.model.response.BaseResponse;
+import wifiairscout.changhong.com.wifiairscout.model.response.GetChannelResponse;
 import wifiairscout.changhong.com.wifiairscout.model.response.ScanResponse;
+import wifiairscout.changhong.com.wifiairscout.service.StartService;
 import wifiairscout.changhong.com.wifiairscout.task.GenericTask;
 import wifiairscout.changhong.com.wifiairscout.task.TaskListener;
 import wifiairscout.changhong.com.wifiairscout.task.TaskResult;
@@ -35,7 +43,10 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
     private ArrayAdapter mAdapter;
     private ArrayList<String> mArrayData = new ArrayList();
     private TextView mTvAdvice;
+    private TextView mTvAdviceTitle;
+    private View mPanelAsk;
     private int mBestChannel;
+    private byte mCurChannel = -1;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -46,7 +57,7 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
         mToolBar.setTitle(R.string.house_choice);
         setSupportActionBar(mToolBar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setTitle("2.4G信道信息");
+        getSupportActionBar().setTitle(R.string.channel2_4);
 
         CommUtils.transparencyBar(this);
 
@@ -60,17 +71,22 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
         }
 
         mTvAdvice = findViewById(R.id.textview_advice);
+        mTvAdviceTitle = findViewById(R.id.tv_advice_title);
+        mPanelAsk = findViewById(R.id.layout_ask);
+
         findViewById(R.id.btn_accept).setOnClickListener(this);
         findViewById(R.id.btn_refuse).setOnClickListener(this);
 
         startLoadChannel();
+
+        EventBus.getDefault().register(this);
     }
 
     @Override
     protected void onDestroy() {
         if (mUdpTask != null)
             mUdpTask.cancle();
-
+        EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
 
@@ -78,8 +94,10 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_accept:
+
                 break;
             case R.id.btn_refuse:
+                finish();
                 break;
         }
     }
@@ -95,8 +113,15 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
         }
     }
 
+    /**
+     * 优化
+     */
+    private void doOptimization(int channel) {
+        mUdpTask = new UDPTask().execute(MessageDataFactory.setChannel(channel), mSetChannelListener);
+    }
+
     private void startLoadChannel() {
-        mUdpTask = new UDPTask().execute(MessageDataFactory.doScan(false), mLoadMasterListener);
+        mUdpTask = new UDPTask().execute(MessageDataFactory.doScan(false), mScanListener);
     }
 
     private void showAlertDialog(CharSequence alertMessage, DialogInterface.OnClickListener listener) {
@@ -122,7 +147,7 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
     /**
      * 扫描结果反馈
      */
-    private TaskListener<ScanResponse> mLoadMasterListener = new TaskListener<ScanResponse>() {
+    private TaskListener mScanListener = new TaskListener<MessageData>() {
         @Override
         public String getName() {
             return null;
@@ -130,7 +155,7 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
 
         @Override
         public void onPreExecute(GenericTask task) {
-            showProgressDialog("扫描信道信息中……", true, new DialogInterface.OnCancelListener() {
+            showProgressDialog(getString(R.string.onScanChanneling), true, new DialogInterface.OnCancelListener() {
                 @Override
                 public void onCancel(DialogInterface dialogInterface) {
                     finish();
@@ -152,19 +177,20 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
         }
 
         @Override
-        public void onProgressUpdate(GenericTask task, ScanResponse param) {
+        public void onProgressUpdate(GenericTask task, MessageData param) {
             if (param == null)
                 return;
+            ScanResponse response = new ScanResponse(param.getMsgBody());
             mArrayData.clear();
             int[] num_channel = new int[13];
-            for (WifiDevice wifiDevice : param.getListAp()) {
+            for (WifiDevice wifiDevice : response.getListAp()) {
                 num_channel[wifiDevice.getChannel() - 1]++;
             }
 
             float minWeight = Float.MAX_VALUE;
             float temp = 0;
             for (int i = 0; i < num_channel.length; ++i) {
-                mArrayData.add(String.format("信道%d:%d", i + 1, num_channel[i]));
+                mArrayData.add(String.format(getString(R.string.formatChannalUsageCondition), i + 1, num_channel[i]));
                 temp = num_channel[i];
                 if (i > 0)
                     temp += 0.3f * num_channel[i - 1];
@@ -175,8 +201,19 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
                     mBestChannel = i;
                 }
             }
-            mTvAdvice.setText(String.format("建议使用%d信道", mBestChannel));
+
+
+            mTvAdvice.setText(String.format(getString(R.string.adviceChannel), mBestChannel));
             mAdapter.notifyDataSetChanged();
+            if (mCurChannel != -1 && mBestChannel == mCurChannel) {
+                mTvAdviceTitle.setText(R.string.noticeCurChannelBest);
+                mTvAdvice.setVisibility(View.GONE);
+                mPanelAsk.setVisibility(View.GONE);
+            } else {
+                mTvAdvice.setVisibility(View.VISIBLE);
+                mPanelAsk.setVisibility(View.VISIBLE);
+                mTvAdviceTitle.setText(R.string.optimizationAdvice);
+            }
         }
 
         @Override
@@ -184,6 +221,36 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
             hideProgressDialog();
         }
     };
+    private TaskListener mSetChannelListener = new TaskListener<BaseResponse>() {
+        @Override
+        public String getName() {
+            return null;
+        }
 
+        public void onPreExecute(GenericTask task) {
+            showProgressDialog(getString(R.string.changeChannel), true, null);
+        }
 
+        public void onPostExecute(GenericTask task, TaskResult result) {
+            hideProgressDialog();
+            if (result != TaskResult.OK) {
+                showToast(task.getException().getMessage());
+            }
+        }
+
+        public void onProgressUpdate(GenericTask task, BaseResponse param) {
+            showToast(getString(R.string.optimizationComplete));
+            StartService.Companion.startServcie(ChannelConditionActivity.this, StartService.ACTION_LOAD_CUR_CHANNEL);
+            finish();
+        }
+
+        public void onCancelled(GenericTask task) {
+            hideProgressDialog();
+        }
+    };
+
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
+    public void onDataSynEvent(GetChannelResponse event) {
+        mCurChannel = event.getChannel();
+    }
 }

@@ -12,10 +12,7 @@ import wifiairscout.changhong.com.wifiairscout.App
 import wifiairscout.changhong.com.wifiairscout.R
 import wifiairscout.changhong.com.wifiairscout.model.MessageData
 import wifiairscout.changhong.com.wifiairscout.model.MessageDataFactory
-import wifiairscout.changhong.com.wifiairscout.model.response.GetClientResponse
-import wifiairscout.changhong.com.wifiairscout.model.response.GetClientStatusResponse
-import wifiairscout.changhong.com.wifiairscout.model.response.GetMasterResponse
-import wifiairscout.changhong.com.wifiairscout.model.response.RegisterResponse
+import wifiairscout.changhong.com.wifiairscout.model.response.*
 import wifiairscout.changhong.com.wifiairscout.task.GenericTask
 import wifiairscout.changhong.com.wifiairscout.task.TaskListener
 import wifiairscout.changhong.com.wifiairscout.task.TaskResult
@@ -29,10 +26,11 @@ import wifiairscout.changhong.com.wifiairscout.utils.CommUtils
 class StartService : Service() {
 
     companion object {
-        val ACTION_START_ALL = 0;
-        val ACTION_LOAD_DEVICE = 1;
-        val ACTION_LOAD_DEVICE_STATUS = 2;
-        val ACTION_LOAD_MASTER = 3
+        const val ACTION_START_ALL = 0
+        const val ACTION_LOAD_DEVICE = 1
+        const val ACTION_LOAD_DEVICE_STATUS = 2
+        const val ACTION_LOAD_MASTER = 3
+        const val ACTION_LOAD_CUR_CHANNEL = 4
 
         fun startServcie(context: Context, action: Int) {
             val intent = Intent(context, Service::class.java)
@@ -59,19 +57,29 @@ class StartService : Service() {
                 startLoadMaster()
                 startLoadDevice()
                 startLoadDeviceStatus()
+                loadCurrentChannel()
             }
 
             ACTION_LOAD_MASTER -> startLoadMaster()
             ACTION_LOAD_DEVICE_STATUS -> startLoadDeviceStatus()
             ACTION_LOAD_DEVICE -> startLoadDevice()
 
+            ACTION_LOAD_CUR_CHANNEL -> loadCurrentChannel()
+
         }
         return super.onStartCommand(intent, flags, startId)
     }
 
+
     override fun onDestroy() {
         arrTask.forEach { it.cancle() }
         super.onDestroy()
+    }
+
+    private fun loadCurrentChannel() {
+        val msg = MessageDataFactory.getChannel()
+
+        UDPTask().execute(msg, mLoadDeviceListener)
     }
 
     private fun startConnectMaster() {
@@ -142,7 +150,6 @@ class StartService : Service() {
         }
 
         override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
-
             val rr = RegisterResponse(param?.msgBody)
             EventBus.getDefault().postSticky(rr)
         }
@@ -220,6 +227,22 @@ class StartService : Service() {
             master.type = App.TYPE_DEVICE_WIFI
 
             EventBus.getDefault().postSticky(master)
+
+        }
+    }
+
+    private val mGetChannelListener = object : UDPTaskListner("获取当前信道……", 3, 500) {
+
+        override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
+            if (result != TaskResult.OK)
+                retry(Runnable { startLoadMaster() })
+            super.onPostExecute(task, result)
+        }
+
+        override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
+
+            val getChannelResponse = GetChannelResponse(param?.msgBody)
+            EventBus.getDefault().postSticky(getChannelResponse)
 
         }
     }

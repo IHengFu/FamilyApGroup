@@ -91,10 +91,6 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
             arrayList.add(clazz);
     }
 
-    public <T> void getDefaultDao(Class<T> clazz){
-
-    }
-
     @Override
     public void close() {
         super.close();

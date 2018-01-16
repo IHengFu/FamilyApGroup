@@ -646,7 +646,7 @@ public class DragViewGroup1 extends ViewGroup implements View.OnTouchListener,
             mListDeviceInfo = new ArrayList<>();
 
         DeviceLocation location = new DeviceLocation(mListDeviceInfo.size(),
-                x, y, device.getMac(), device.getType());
+                x, y, device.getMac(), device.getType(), 0);
         location.setWifiDevice(device);
         mListDeviceInfo.add(location);
         return location;

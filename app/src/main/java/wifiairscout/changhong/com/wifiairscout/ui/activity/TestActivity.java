@@ -3,11 +3,18 @@ package wifiairscout.changhong.com.wifiairscout.ui.activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.j256.ormlite.dao.Dao;
+
+import java.sql.SQLException;
+
 import wifiairscout.changhong.com.wifiairscout.R;
+import wifiairscout.changhong.com.wifiairscout.db.DBHelper;
+import wifiairscout.changhong.com.wifiairscout.model.DeviceLocation;
 
 /**
  * Created by fuheng on 2017/12/20.
@@ -18,6 +25,20 @@ public class TestActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.layout_test);
+
+        DBHelper dbHelper = DBHelper.getHelper(this);
+        try {
+            Dao<DeviceLocation, ?> dao = dbHelper.getDao(DeviceLocation.class);
+            for (int i = 0; i < 10; i++) {
+                DeviceLocation dl = new DeviceLocation(i, (float) (Math.random() * 400), (float) (Math.random() * 400), "BB:CC:DD:EE:FF:AA", (byte) 1, 0);
+                dao.create(dl);
+            }
+            Log.i("Tag", "==~ couuntof = " + dao.countOf());
+            Log.i("Tag", "==~ TableName = " + dao.getTableName());
+            Log.i("Tag", "==~ size = " + dao.queryForAll().size());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
 
         String content = "奶爸的文艺人生 654 第654章 什么是龟儿子啊？（1/4）\n" +
                 "\n" +
@@ -134,6 +155,6 @@ public class TestActivity extends AppCompatActivity {
                 "　　“龟儿子是什么意思啊？”\n" +
                 "\n" +
                 "　　“……”";
-        ((TextView)findViewById(R.id.text_test)).setText(content);
+        ((TextView) findViewById(R.id.text_test)).setText(content);
     }
 }

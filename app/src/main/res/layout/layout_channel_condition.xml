@@ -23,7 +23,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="通道使用情况："
+        android:text="@string/tabChannelCondition"
         android:textSize="14sp" />
 
     <ListView
@@ -33,11 +33,12 @@
         android:layout_weight="1" />
 
     <TextView
+        android:id="@+id/tv_advice_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:gravity="center"
-        android:text="优化建议"
+        android:text="@string/optimizationAdvice"
         android:textSize="14sp" />
 
     <TextView
@@ -46,7 +47,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="5dp"
         android:gravity="center"
-        android:text="建议使用n信道"
+        android:text="@string/adviceChannel"
         android:textSize="12sp" />
 
     <View
@@ -55,6 +56,7 @@
         android:background="@android:color/darker_gray" />
 
     <LinearLayout
+        android:id="@+id/layout_ask"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal">
