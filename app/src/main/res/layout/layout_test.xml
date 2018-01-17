@@ -30,13 +30,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
+            <android.support.v7.widget.AppCompatTextView
+                android:id="@+id/textview01"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="lsdfjlkasflksaf" />
             <!--<TextView-->
-                <!--android:id="@+id/toolbar"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="?attr/actionBarSize"-->
-                <!--app:layout_collapseMode="pin"-->
-                <!--android:text="324234234"-->
-                <!--app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />-->
+            <!--android:id="@+id/toolbar"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="?attr/actionBarSize"-->
+            <!--app:layout_collapseMode="pin"-->
+            <!--android:text="324234234"-->
+            <!--app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />-->
         </android.support.design.widget.CollapsingToolbarLayout>
 
     </android.support.design.widget.AppBarLayout>
