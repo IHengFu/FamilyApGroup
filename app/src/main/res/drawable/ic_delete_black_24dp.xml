@@ -14,6 +14,16 @@
     <path
         android:name="edge"
         android:pathData="M8.46,11.88l1.41,-1.41L12,12.59l2.12,-2.12 1.41,1.41L13.41,14l2.12,2.12 -1.41,1.41L12,15.41l-2.12,2.12 -1.41,-1.41L10.59,14l-2.13,-2.12z"
-        android:strokeColor="#00ff0000"
-        android:strokeWidth=".2" />
+        android:strokeColor="#88ff0000"
+        android:strokeWidth=".5" />
+    <!--<path-->
+        <!--android:name="edge"-->
+        <!--android:pathData="M12.26,10.48l0,8m-4,-4l8,0"-->
+        <!--android:strokeColor="#88ff0000"-->
+        <!--android:strokeWidth="2" />-->
+    <!--<path
+        android:name="edge"
+        android:pathData="M8,10l8,7m0,-7l-8,7"
+        android:strokeColor="#88ff0000"
+        android:strokeWidth="2" />-->
 </vector>

@@ -40,21 +40,8 @@ public class PointMap implements TypeMap {
             for (int i = 0; i < viewGroup.getChildCount(); ++i) {
                 TextView view = (TextView) viewGroup.getChildAt(i);
                 DeviceLocation d = list.get(i);
+                setDrawableAndStart(view, d);
 
-                if (d.getWifiDevice() == null) {
-                    if (view.getBackground() != null) {
-                        Animatable drawable = (Animatable) view.getBackground();
-                        drawable.stop();
-                        view.setBackground(null);
-                    }
-                } else {
-                    if (view.getBackground() == null) {
-                        view.setBackgroundResource(R.drawable.animatied_vector_oval);
-                        AnimatedVectorDrawable drawable = (AnimatedVectorDrawable) view.getBackground();
-                        DrawableCompat.setTint(drawable, getColorByRssi(d.getWifiDevice().getRssi()));
-                        drawable.start();
-                    }
-                }
             }
     }
 
@@ -90,28 +77,42 @@ public class PointMap implements TypeMap {
 
     @Override
     public void onAdd(ViewGroup group, View view, DeviceLocation d) {
-        if (d.getWifiDevice() != null) {
-            view.setBackgroundResource(R.drawable.animatied_vector_oval);
-            Animatable drawable = (Animatable) view.getBackground();
-            drawable.start();
-        }
+        setDrawableAndStart(view, d);
     }
+
 
     @Override
     public void onRemove(View view, DeviceLocation d) {
-        if (d.getWifiDevice() != null)
+        if (view.getBackground() != null && view.getBackground() instanceof Animatable)
             ((Animatable) view.getBackground()).stop();
     }
 
     private int getColorByRssi(int rssi) {
         float rate = rssi - App.MIN_RSSI;
         rate /= App.MAX_RSSI - App.MIN_RSSI;
-        for (int i = 0; i < RATE_WAVE.length; i++) {
-            if (rate < RATE_WAVE[i]) {
-                return COLOR_PATH_RANGE[i] & 0xffffffff;
-            }
-        }
+//        for (int i = 0; i < RATE_WAVE.length; i++) {
+//            if (rate < RATE_WAVE[i]) {
+//                return COLOR_PATH_RANGE[i] | 0xff000000;
+//            }
+//        }
+//        return Color.GREEN;
 
-        return Color.GREEN;
+        return Color.HSVToColor(new float[]{rate * 120f, 1, 1});
+    }
+
+    private void setDrawableAndStart(View view, DeviceLocation d) {
+        if (d.getWifiDevice() != null && d.getWifiDevice().getType() != App.TYPE_DEVICE_WIFI) {
+//            if (view.getBackground() == null) {
+            Drawable drawable1 = mContext.getDrawable(R.drawable.animatied_vector_oval).mutate();
+            DrawableCompat.setTint(drawable1, getColorByRssi(d.getWifiDevice().getRssi()));
+            view.setBackground(drawable1);
+            Animatable drawable = (Animatable) drawable1;
+            drawable.start();
+//            }
+        } else if (view.getBackground() != null) {
+            Animatable drawable = (Animatable) view.getBackground();
+            drawable.stop();
+            view.setBackground(null);
+        }
     }
 }

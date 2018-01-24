@@ -6,7 +6,7 @@
         android:interpolator="@android:anim/accelerate_interpolator"
         android:propertyName="strokeColor"
         android:repeatCount="infinite"
-        android:repeatMode="restart"
+        android:repeatMode="reverse"
         android:valueFrom="#ffff0000"
         android:valueTo="#00ff0000" />
 
@@ -15,7 +15,7 @@
         android:duration="2000"
         android:propertyName="fillColor"
         android:repeatCount="infinite"
-        android:repeatMode="restart"
+        android:repeatMode="reverse"
         android:valueFrom="#88ff0000"
         android:valueTo="#00ff0000" />
 

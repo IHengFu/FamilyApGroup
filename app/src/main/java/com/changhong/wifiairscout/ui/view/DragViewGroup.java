@@ -1,5 +1,6 @@
 package com.changhong.wifiairscout.ui.view;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -8,9 +9,7 @@ import android.graphics.Paint;
 import android.graphics.PixelFormat;
 import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
-import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.graphics.drawable.AnimatedVectorDrawableCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.AppCompatImageView;
 import android.text.TextUtils;
@@ -39,6 +38,7 @@ import com.changhong.wifiairscout.preferences.Preferences;
 import com.changhong.wifiairscout.ui.view.map.PointMap;
 import com.changhong.wifiairscout.ui.view.map.TypeMap;
 import com.changhong.wifiairscout.ui.view.map.WaveForceMap;
+import com.changhong.wifiairscout.utils.CommUtils;
 import com.changhong.wifiairscout.utils.UnitUtils;
 
 /**
@@ -293,8 +293,8 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
                     v.clearAnimation();
 
                     float x = event.getX(), y = event.getY();
-                    float v_width = v.getWidth();
-                    float v_height = v.getHeight();
+                    float v_width = getChildWidth(v);
+                    float v_height = getChildHeight(v);
 
                     x = Math.max(x, -mScrollX + v_width / 2);
                     x = Math.min(x, getWidth() - mScrollX - v_width / 2);
@@ -336,8 +336,8 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
 
         View v = getChildAt(dragged);
 
-        float v_width = v.getWidth();
-        float v_height = v.getHeight();
+        float v_width = getChildWidth(v);
+        float v_height = getChildHeight(v);
 
         x = Math.max(x, -mScrollX + v_width / 2);
         x = Math.min(x, getWidth() - mScrollX - v_width / 2);
@@ -522,17 +522,22 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
                 Context context = getContext();
                 mDeleteTextView = new AppCompatImageView(context);
                 mDeleteTextView.setPadding(4, 4, 4, 4);
-                mDeleteTextView.setImageResource(R.drawable.animatied_vector_delete);
                 mDeleteTextView.setBackgroundResource(R.drawable.round_rect_delete);
+                mDeleteTextView.setImageResource(R.drawable.animatied_vector_delete);
+                Animatable drawable = (Animatable) mDeleteTextView.getDrawable();
+                drawable.start();
             }
+            mDeleteTextView.setEnabled(true);
+
             WindowManager.LayoutParams mDeleteLayoutParams = new WindowManager.LayoutParams();
             mDeleteLayoutParams.gravity = Gravity.TOP | Gravity.LEFT;
             int[] location = new int[2];
-            getLocationOnScreen(location);
+            getLocationInWindow(location);
+
             mDeleteLayoutParams.height = UnitUtils.dip2px(getContext(), 48);
             mDeleteLayoutParams.width = mDeleteLayoutParams.height;
             mDeleteLayoutParams.x = location[0] + getWidth() / 2 - mDeleteLayoutParams.width / 2;
-            mDeleteLayoutParams.y = location[1] - mDeleteLayoutParams.height;
+            mDeleteLayoutParams.y = location[1] - CommUtils.getStatusBarHeight((Activity) getContext()) - mDeleteLayoutParams.height;
 
             mDeleteTextView.setVisibility(View.VISIBLE);
 
@@ -575,18 +580,20 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
     private void onDragedInDeleteView(int x, int y) {
         if (mDeleteTextView != null) {
             boolean isEnable = !isInDeleteState(x, y);
-            mDeleteTextView.setEnabled(isEnable);
             if (mDeleteTextView.isEnabled() == isEnable) {
                 return;
             }
+            mDeleteTextView.setEnabled(isEnable);
 
-            Animatable drawable = (Animatable) mDeleteTextView.getDrawable();
-            if (isEnable) {
-                if (!drawable.isRunning())
-                    drawable.start();
-            } else {
-                drawable.stop();
-            }
+//            Animatable drawable = (Animatable) mDeleteTextView.getDrawable();
+//            if (!isEnable) {
+//
+//                if (!drawable.isRunning()) {
+//                    drawable.start();
+//                }
+//            } else {
+//                drawable.stop();
+//            }
 
         }
     }
@@ -708,11 +715,19 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         if (d.getWifiDevice() == null) {
             DrawableCompat.setTint(drawable, Color.DKGRAY);
         }
-//        view.setPadding(SIZE_CHILD, SIZE_CHILD, SIZE_CHILD, SIZE_CHILD);
+        view.setPadding(SIZE_CHILD, SIZE_CHILD, SIZE_CHILD, SIZE_CHILD);
         float width = Math.max(drawable.getBounds().width(), mTextBoundsRect.width());
         float height = drawable.getBounds().height() + mTextBoundsRect.height() + view.getCompoundDrawablePadding() + SIZE_CHILD_TEXT;
-        width = height = Math.max(width, height);
+        width = height = Math.max(width, height) + 2 * SIZE_CHILD;
         view.layout((int) (x - width / 2), (int) (y - height / 2),
                 (int) (x + width / 2), (int) (y + height / 2));
+    }
+
+    private int getChildWidth(View child) {
+        return child.getWidth() - SIZE_CHILD * 2;
+    }
+
+    private int getChildHeight(View child) {
+        return child.getHeight() - SIZE_CHILD * 2;
     }
 }

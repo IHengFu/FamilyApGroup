@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.StateListDrawable;
 import android.net.ConnectivityManager;
@@ -12,6 +13,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.support.annotation.ColorInt;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -97,6 +99,16 @@ public class CommUtils {
         }
 
         return false;
+    }
+
+    /**
+     * 获取屏幕任务栏高度
+     */
+    public static int getStatusBarHeight(Activity activity) {
+        Rect rectangle = new Rect();
+        activity.getWindow().getDecorView().getWindowVisibleDisplayFrame(rectangle);
+        Log.e("WangJ", "状态栏-方法3:" + rectangle.toString());
+        return rectangle.top;
     }
 
 }
