@@ -1,1 +1,1 @@
-[{"outputType":{"type":"APK"},"apkInfo":{"type":"MAIN","splits":[],"versionCode":1},"path":"app-debug.apk","properties":{"packageId":"wifiairscout.changhong.com.wifiairscout","split":"","minSdkVersion":"21"}}]
+[{"outputType":{"type":"APK"},"apkInfo":{"type":"MAIN","splits":[],"versionCode":1},"path":"app-debug.apk","properties":{"packageId":"com.changhong.wifiairscout","split":"","minSdkVersion":"21"}}]

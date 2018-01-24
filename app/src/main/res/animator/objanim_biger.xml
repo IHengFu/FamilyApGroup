@@ -1,0 +1,31 @@
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:ordering="together">
+
+    <objectAnimator
+        android:duration="2000"
+        android:interpolator="@android:anim/accelerate_interpolator"
+        android:propertyName="strokeColor"
+        android:repeatCount="infinite"
+        android:repeatMode="restart"
+        android:valueFrom="#ffff0000"
+        android:valueTo="#00ff0000" />
+
+    <objectAnimator
+        android:interpolator="@android:anim/bounce_interpolator"
+        android:duration="2000"
+        android:propertyName="fillColor"
+        android:repeatCount="infinite"
+        android:repeatMode="restart"
+        android:valueFrom="#88ff0000"
+        android:valueTo="#00ff0000" />
+
+    <objectAnimator
+        android:interpolator="@android:anim/decelerate_interpolator"
+        android:duration="2000"
+        android:propertyName="pathData"
+        android:repeatCount="infinite"
+        android:repeatMode="restart"
+        android:valueFrom="M40,35 a5,5 0 1 0 1 0z"
+        android:valueTo="M39,1 a38,39 0 1 0 1 0z"
+        android:valueType="pathType" />
+</set>

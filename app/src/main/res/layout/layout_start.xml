@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
-    tools:context="wifiairscout.changhong.com.wifiairscout.ui.activity.StartActivity">
+    tools:context="com.changhong.wifiairscout.ui.activity.StartActivity">
 
     <TextView
         android:layout_width="wrap_content"

@@ -22,6 +22,7 @@
     <string name="wifi">Wifi</string>
     <string name="my_phone">My Phone</string>
     <string name="client">Client</string>
+
     <!--startactivity-->
     <string name="cannot_connect_master">Cannot connect master</string>
     <string name="notice_init">Initiate…</string>
@@ -36,8 +37,30 @@
     <string name="notice_wait_for_develop">Wait for develop</string>
     <string name="title_device_list">Device List</string>
     <string name="notice_download_data">Please wait for download data...</string>
+
+    <string name="action_save_programme">Save programme</string>
+    <string name="action_load_programme">Load programme</string>
+    <string name="notice_containe_same_name">There have save name recode,please retry.</string>
+    <string name="programme">Programme</string>
+    <string name="average">Average Value</string>
+    <string name="title_change_channel">Set the channel your choosed（1～13）</string>
+    <string name="request_sending">Request is sending……</string>
+    <string name="request_send_complete">Request-send completed.</string>
     <!--channel condition-->
     <string name="no_data">No data</string>
     <string name="start_scan">Start scan</string>
     <string name="optimization">Optimization</string>
+    <string name="onScanChanneling">Channel scanning……</string>
+    <string name="channel2_4">Channel 2.4G</string>
+    <string name="channel5_0">Channel 5G </string>
+    <string name="changeChannel">Change channel</string>
+    <string name="optimizationComplete">Optimization Complete</string>
+    <string name="optimizationAdvice">Optimization advice</string>
+    <string name="tabChannelCondition">Channel Condition：</string>
+    <string name="noticeCurChannelBest">Current Channel is the best.</string>
+    <string name="adviceChannel">Advice to use %d channel.</string>
+    <string name="formatChannalUsageCondition">"Channel %d:%d"</string>
+
+    <!--OprationActivity-->
+    <string name="ask_delete_recode">Are your really to delete all the programme recodes?</string>
 </resources>

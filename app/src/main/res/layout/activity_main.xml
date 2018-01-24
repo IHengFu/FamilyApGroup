@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorBg"
-    tools:context="wifiairscout.changhong.com.wifiairscout.ui.activity.MainActivity">
+    tools:context="com.changhong.wifiairscout.ui.activity.MainActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -18,21 +18,21 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed"
             app:popupTheme="@style/AppTheme.PopupOverlay" />
+        <!--app:layout_scrollFlags="scroll|exitUntilCollapsed"-->
 
     </android.support.design.widget.AppBarLayout>
 
-    <include layout="@layout/content_main"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"/>
+    <include layout="@layout/content_main" />
+    <!--app:layout_behavior="@string/appbar_scrolling_view_behavior"-->
 
     <!--<android.support.design.widget.FloatingActionButton-->
-        <!--android:id="@+id/fab"-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_gravity="bottom|end"-->
-        <!--android:layout_margin="@dimen/fab_margin"-->
-        <!--app:srcCompat="@android:drawable/stat_notify_sync" />-->
+    <!--android:id="@+id/fab"-->
+    <!--android:layout_width="wrap_content"-->
+    <!--android:layout_height="wrap_content"-->
+    <!--android:layout_gravity="bottom|end"-->
+    <!--android:layout_margin="@dimen/fab_margin"-->
+    <!--app:srcCompat="@android:drawable/stat_notify_sync" />-->
 
 
 </android.support.design.widget.CoordinatorLayout>

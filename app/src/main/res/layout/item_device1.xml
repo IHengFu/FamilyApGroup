@@ -21,6 +21,7 @@
         android:maxLines="1"
         android:text="手机"
         android:textSize="10sp"
+        android:textColor="@color/text_click_color"
         android:visibility="visible" />
 
 </LinearLayout>

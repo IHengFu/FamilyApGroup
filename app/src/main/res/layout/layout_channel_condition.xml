@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:context="com.changhong.wifiairscout.ui.activity.ChannelConditionActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingTop="10dp"
         android:theme="@style/AppTheme.AppBarOverlay">
 
         <android.support.v7.widget.Toolbar
@@ -24,12 +27,15 @@
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/tabChannelCondition"
-        android:textSize="14sp" />
+        style="?android:attr/textAppearanceLarge"
+        android:textSize="20sp" />
 
     <ListView
         android:id="@+id/list_channelUsedCondetion"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="10dp"
         android:layout_weight="1" />
 
     <TextView
@@ -38,8 +44,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:gravity="center"
-        android:text="@string/optimizationAdvice"
-        android:textSize="14sp" />
+        style="?android:attr/textAppearanceMedium"
+        android:textColor="@android:color/white"
+        android:text="@string/optimizationAdvice" />
 
     <TextView
         android:id="@+id/textview_advice"
@@ -47,6 +54,8 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="5dp"
         android:gravity="center"
+        style="?android:attr/textAppearanceSmall"
+        android:textColor="@android:color/white"
         android:text="@string/adviceChannel"
         android:textSize="12sp" />
 
@@ -63,12 +72,13 @@
 
         <Button
             android:id="@+id/btn_refuse"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
             android:gravity="center"
-            android:text="@string/action_refuse" />
+            android:text="@string/action_refuse"
+            android:textColor="@color/text_click_color" />
 
         <View
             android:layout_width="1dp"
@@ -77,11 +87,12 @@
 
         <Button
             android:id="@+id/btn_accept"
+            style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:background="@android:color/transparent"
             android:gravity="center"
-            android:text="@string/action_accept" />
+            android:text="@string/action_accept"
+            android:textColor="@color/text_click_color" />
     </LinearLayout>
 </LinearLayout>

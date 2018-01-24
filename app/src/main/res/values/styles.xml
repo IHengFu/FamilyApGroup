@@ -7,9 +7,9 @@
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
 
-        <item name="android:textColor">@color/textColorPrimary</item>
+        <item name="android:textColor">@color/textColor</item>
         <item name="android:textColorPrimary">@color/textColorPrimary</item>
-        <item name="android:textColorSecondary">@color/textColorPrimary</item>
+        <item name="android:textColorSecondary">@color/textColorSecondry</item>
         <item name="android:textSize">@dimen/txt_x14</item>
         <item name="android:windowBackground">@color/colorBg</item>
         <item name="android:windowActionModeOverlay">true</item>
@@ -42,6 +42,7 @@
     <style name="AppTheme.Dialog.Alert" parent="Theme.AppCompat.Dialog.Alert">
         <item name="colorAccent">@color/colorAccent</item>
     </style>
+
     <style name="Button.Small" parent="Widget.AppCompat.Button.Small">
         <item name="colorAccent">@color/colorAccent</item>
     </style>

@@ -37,6 +37,15 @@
     <string name="notice_wait_for_develop">待开发</string>
     <string name="title_device_list">设备列表</string>
     <string name="notice_download_data">数据加载中，请稍后……</string>
+
+    <string name="action_save_programme">保存方案</string>
+    <string name="action_load_programme">加载方案</string>
+    <string name="notice_containe_same_name">已有同名记录，请重新输入。</string>
+    <string name="programme">方案</string>
+    <string name="average">均值</string>
+    <string name="title_change_channel">设置您需要切换的信道（1～13）</string>
+    <string name="request_sending">请求发送中……</string>
+    <string name="request_send_complete">请求发送完成。</string>
     <!--channel condition-->
     <string name="no_data">无数据</string>
     <string name="start_scan">启动测试</string>
@@ -51,6 +60,7 @@
     <string name="noticeCurChannelBest">当前信道为最佳信道</string>
     <string name="adviceChannel">建议使用%d信道</string>
     <string name="formatChannalUsageCondition">"信道%d:%d"</string>
-
+    <!--OprationActivity-->
+    <string name="ask_delete_recode">是否确定要删除所有的方案记录?</string>
 
 </resources>

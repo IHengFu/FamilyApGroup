@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@android:color/background_light"
     android:fitsSystemWindows="true"
-    tools:context="wifiairscout.changhong.com.wifiairscout.ui.activity.TestActivity">
+    tools:context="com.changhong.wifiairscout.ui.activity.TestActivity">
 
     <android.support.design.widget.AppBarLayout
         android:id="@+id/main.appbar"
@@ -26,9 +26,15 @@
             app:expandedTitleMarginStart="48dp"
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
-            <wifiairscout.changhong.com.wifiairscout.ui.view.TestView
+            <com.changhong.wifiairscout.ui.view.TestView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
+
+            <ImageView
+                android:id="@+id/imageView_test"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/animatied_vector_oval" />
 
             <!--<TextView-->
                 <!--android:id="@+id/toolbar"-->
