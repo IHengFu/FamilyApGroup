@@ -13,7 +13,7 @@ import android.widget.TextView;
 import java.util.List;
 
 import com.changhong.wifiairscout.App;
-import com.changhong.wifiairscout.model.DeviceLocation;
+import com.changhong.wifiairscout.db.data.DeviceLocation;
 
 /**
  * Created by fuheng on 2017/12/22.

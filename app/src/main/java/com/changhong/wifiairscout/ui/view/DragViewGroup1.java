@@ -8,7 +8,6 @@ import android.graphics.DashPathEffect;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PixelFormat;
-import android.graphics.Point;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
@@ -38,7 +37,7 @@ import java.util.Locale;
 
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
-import com.changhong.wifiairscout.model.DeviceLocation;
+import com.changhong.wifiairscout.db.data.DeviceLocation;
 import com.changhong.wifiairscout.model.HouseData;
 import com.changhong.wifiairscout.model.WifiDevice;
 import com.changhong.wifiairscout.utils.CommUtils;

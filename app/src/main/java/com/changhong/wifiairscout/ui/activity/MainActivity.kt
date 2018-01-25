@@ -6,23 +6,23 @@ import android.os.Bundle
 import android.os.CountDownTimer
 import android.support.v4.view.ViewPager
 import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
 import android.text.InputType
 import android.text.TextUtils
 import android.util.Log
-import android.view.*
+import android.view.Menu
+import android.view.MenuItem
+import android.view.View
 import android.widget.AdapterView
-
-import kotlinx.android.synthetic.main.activity_main.*
-import org.greenrobot.eventbus.EventBus
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import com.changhong.wifiairscout.App
 import com.changhong.wifiairscout.R
 import com.changhong.wifiairscout.db.DBHelper
-import com.changhong.wifiairscout.db.DeviceLocationDao
-import com.changhong.wifiairscout.db.ProgrammeDao
-import com.changhong.wifiairscout.model.*
+import com.changhong.wifiairscout.db.dao.DeviceLocationDao
+import com.changhong.wifiairscout.db.dao.ProgrammeDao
+import com.changhong.wifiairscout.db.data.DeviceLocation
+import com.changhong.wifiairscout.db.data.ProgrammeGroup
+import com.changhong.wifiairscout.model.HouseData
+import com.changhong.wifiairscout.model.MessageDataFactory
+import com.changhong.wifiairscout.model.WifiDevice
 import com.changhong.wifiairscout.model.response.*
 import com.changhong.wifiairscout.preferences.Preferences
 import com.changhong.wifiairscout.service.StartService
@@ -31,20 +31,23 @@ import com.changhong.wifiairscout.task.TaskListener
 import com.changhong.wifiairscout.task.TaskResult
 import com.changhong.wifiairscout.task.UDPTask
 import com.changhong.wifiairscout.ui.adapter.DeviceViewPagerAdapter
-import com.changhong.wifiairscout.ui.view.AlertInputDialog
 import com.changhong.wifiairscout.ui.view.DefaultInputDialog
 import com.changhong.wifiairscout.ui.view.DragViewGroup
 import com.changhong.wifiairscout.ui.view.DragViewPager
 import com.changhong.wifiairscout.utils.CommUtils
 import com.changhong.wifiairscout.utils.FileUtils
-import kotlin.collections.ArrayList
+import kotlinx.android.synthetic.main.activity_main.*
+import org.greenrobot.eventbus.EventBus
+import org.greenrobot.eventbus.Subscribe
+import org.greenrobot.eventbus.ThreadMode
 
 class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClickListener {
 
-
     private val viewPager: DragViewPager<WifiDevice> by lazy { findViewById<DragViewPager<WifiDevice>>(R.id.vp_device) }
+    private val deviceAdapter: DeviceViewPagerAdapter by lazy { DeviceViewPagerAdapter(this, mArrayDevices) }
 
     private val layout_apartment: DragViewGroup by lazy { findViewById<DragViewGroup>(R.id.layout_apartment) }
+
     private val mArrayDevices = ArrayList<WifiDevice>()
 
     private var mUdpTask: GenericTask? = null
@@ -53,9 +56,9 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
     companion object {
         const val REQUEST_OPRATION = 2 //设置请求的code
-    }
+        const val REQUEST_DEVICE_DETAIL = 8 //设置请求的code
 
-    private val deviceAdapter: DeviceViewPagerAdapter by lazy { DeviceViewPagerAdapter(this, mArrayDevices) }
+    }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -80,11 +83,12 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
         layout_apartment.setOnItemClickListener(object : AdapterView.OnItemClickListener {
             override fun onItemClick(adapterView: AdapterView<*>?, view1: View, i: Int, l: Long) {
-                if (view1.getTag() != null) {
-                    val intent = Intent(this@MainActivity, DeviceDetailActivity::class.java)
-                    intent.putExtra(Intent.EXTRA_DATA_REMOVED, view1.getTag() as WifiDevice)
-                    startActivity(intent)
-                }
+                val intent = Intent(this@MainActivity, DeviceLocationDetailActivity::class.java)
+                val location = view1.getTag() as DeviceLocation
+                intent.putExtra(Intent.EXTRA_DATA_REMOVED, location.wifiDevice)
+                intent.putExtra(Intent.EXTRA_ASSIST_INPUT_DEVICE_ID, location.mac)
+                intent.putExtra(Intent.EXTRA_TEXT, location.nickName)
+                startActivityForResult(intent, REQUEST_DEVICE_DETAIL)
             }
         })
 
@@ -139,7 +143,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         if (App.sTest) {
             val result = ArrayList<WifiDevice>(6)
             for (i in 0 until 4) {
-                var mac: String? = ""
+                var mac: String = ""
                 for (j in 0 until 5) {
                     mac += String.format("%02x", (Math.random() * 0xff).toByte()).toUpperCase()
                     mac += ":"
@@ -173,11 +177,20 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode != AppCompatActivity.RESULT_OK)
+        if (resultCode != RESULT_OK)
             return
-
         if (requestCode == REQUEST_OPRATION) {
             layout_apartment.setPointState(Preferences.getIntance().mapShowStyle == 0)
+        } else if (requestCode == REQUEST_DEVICE_DETAIL) {
+            val mac = data?.getStringExtra(Intent.EXTRA_ASSIST_INPUT_DEVICE_ID)
+            val nickname = data?.getStringExtra(Intent.EXTRA_TEXT)
+            layout_apartment.exportData().forEach { it ->
+                if (it.mac.equals(mac)) {
+                    it.nickName = nickname
+                    layout_apartment.refresh()
+                    return@forEach
+                }
+            }
         }
     }
 
@@ -314,7 +327,6 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             override fun onItemClick(device: WifiDevice, position: Int) {
                 val intent = Intent(this@MainActivity, DeviceDetailActivity::class.java)
                 intent.putExtra(Intent.EXTRA_DATA_REMOVED, device)
-                System.err.println(device.toString())
                 startActivity(intent)
             }
 
@@ -361,6 +373,11 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             showToast(getString(R.string.no_data))
             return
         }
+        val pDao = ProgrammeDao(this)
+        if (pDao.rowNums >= App.MAX_NUM_PROGRAMME) {
+            showToast(getString(R.string.notice_programme_max_limit))
+            return
+        }
 
         val dialog = DefaultInputDialog(this)
         dialog.setTitle(R.string.action_save_programme)
@@ -368,7 +385,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             if (TextUtils.isEmpty(msg)) {
                 return@setOnCommitListener
             }
-            val pDao = ProgrammeDao(this)
+
 
             val recode = pDao.queryByName(msg)
             if (recode != null && !recode.isEmpty()) {
@@ -414,14 +431,25 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         for (i in all.indices) {
             items[i] = "${getString(R.string.programme)}:${all[i].name}\n${getString(R.string.average)}:${all[i].rssi.toInt()} "
         }
-
+        var choice = -1
         AlertDialog.Builder(this)
-                .setTitle(R.string.action_load_programme)
-                .setSingleChoiceItems(items, -1, DialogInterface.OnClickListener { dialogInterface, i ->
-                    dialogInterface.dismiss()
-                    loadProgramme(all[i])
+                .setTitle("${getString(R.string.action_load_programme)} (${items.size})")
+                .setSingleChoiceItems(items, -1, { dialogInterface, i -> choice = i })
+                .setPositiveButton(R.string.action_cancel, null)
+                .setNegativeButton(R.string.action_load, { dialogInterface, i ->
+                    if (choice == -1) {
+                        showToast(getString(R.string.no_data))
+                        return@setNegativeButton
+                    }
+                    loadProgramme(all[choice])
                 })
-                .setPositiveButton(R.string.action_cancel, DialogInterface.OnClickListener { dialogInterface, i -> dialogInterface.dismiss() })
+                .setNeutralButton(R.string.action_delete, { dialogInterface, i ->
+                    if (choice == -1) {
+                        showToast(getString(R.string.no_data))
+                        return@setNeutralButton
+                    }
+                    pDao.delete(all[choice])
+                })
                 .create().show()
 
     }

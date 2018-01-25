@@ -66,6 +66,11 @@
             android:name=".ui.activity.ChannelConditionActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".ui.activity.DeviceLocationDetailActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+
 
         <service android:name=".service.StartService" />
     </application>

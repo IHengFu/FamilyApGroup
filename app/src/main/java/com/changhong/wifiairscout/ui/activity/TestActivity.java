@@ -1,27 +1,16 @@
 package com.changhong.wifiairscout.ui.activity;
 
 import android.graphics.Color;
-import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.graphics.drawable.AnimatedVectorDrawableCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
-import android.util.Log;
-import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.j256.ormlite.dao.Dao;
-
-import java.sql.SQLException;
-
 import com.changhong.wifiairscout.R;
-import com.changhong.wifiairscout.db.DBHelper;
-import com.changhong.wifiairscout.model.DeviceLocation;
 
 /**
  * Created by fuheng on 2017/12/20.

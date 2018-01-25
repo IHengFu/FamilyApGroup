@@ -6,9 +6,7 @@ import android.view.ViewGroup;
 
 import java.util.List;
 
-import com.changhong.wifiairscout.App;
-import com.changhong.wifiairscout.model.DeviceLocation;
-import com.changhong.wifiairscout.utils.CommUtils;
+import com.changhong.wifiairscout.db.data.DeviceLocation;
 
 /**
  * Created by fuheng on 2018/1/18.

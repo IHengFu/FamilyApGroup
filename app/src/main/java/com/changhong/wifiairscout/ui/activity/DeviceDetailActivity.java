@@ -7,13 +7,12 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.TextView;
-
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
@@ -23,15 +22,22 @@ import com.changhong.wifiairscout.ui.view.ArcView;
 import com.changhong.wifiairscout.ui.view.SignalView;
 import com.changhong.wifiairscout.utils.CommUtils;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
+import java.util.List;
+
 /**
  * Created by fuheng on 2017/12/12.
  */
 
 public class DeviceDetailActivity extends AppCompatActivity {
-    private TextView mTvDeviceName;
-    private TextView mTvMac;
+    protected EditText mTvDeviceName;
+    protected TextView mTvMac;
     private TextView mTvCurChannal;
-    private WifiDevice device;
+    private TextView mTvIP;
+    protected WifiDevice device;
     private ArcView signalView;
     private SignalView mAnimSignalView;
 
@@ -45,33 +51,38 @@ public class DeviceDetailActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(R.mipmap.ic_back);
-//        getSupportActionBar().setIcon(App.RESID_WIFI_DEVICE[device.getType()]);
 
         CommUtils.transparencyBar(this);
 
         EventBus.getDefault().register(this);
+        getSupportActionBar().setTitle(R.string.title_device_detail);
 
+        mTvDeviceName = findViewById(R.id.tv_device_name);
+        setEditTextDeable();
 
-        mTvDeviceName = (TextView) findViewById(R.id.tv_device_name);
-        mTvMac = (TextView) findViewById(R.id.tv_mac);
-        mTvCurChannal = (TextView) findViewById(R.id.tv_current_channel);
+        mTvIP = findViewById(R.id.tv_ip);
+        mTvMac = findViewById(R.id.tv_mac);
+        mTvCurChannal = findViewById(R.id.tv_current_channel);
 
 
         signalView = findViewById(R.id.signal_view);
 
         mAnimSignalView = findViewById(R.id.view_anim_signal);
+    }
 
-        reset();
+    protected void setEditTextDeable(){
+        mTvDeviceName.setEnabled(false);
+        mTvDeviceName.setBackground(null);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+        reset();
     }
 
     @Override
     protected void onDestroy() {
-
         EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
@@ -102,27 +113,45 @@ public class DeviceDetailActivity extends AppCompatActivity {
                 }
             }
         }
+    }
 
+    protected void reset() {
+
+        if (device != null) {
+            mTvIP.setText(device.getIp());
+            mTvMac.setText(device.getMac());
+            mTvCurChannal.setText("" + device.getChannel());
+            mTvDeviceName.setText(device.getName());
+
+            mAnimSignalView.setVisibility(View.VISIBLE);
+
+            signalView.setDisplayString(getString(R.string.tab_cur_signal), String.valueOf(device.getRssi()), App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
+            float rate = getRate();
+            signalView.setProgress((int) rate);
+            mAnimSignalView.setColor(getSignalColor(rate));
+        } else {
+            mTvIP.setText(null);
+            mTvIP.setText(null);
+            mTvMac.setText(null);
+            mTvCurChannal.setText(null);
+            mTvDeviceName.setText(null);
+            mAnimSignalView.setVisibility(View.INVISIBLE);
+            signalView.setDisplayString(getString(R.string.tab_cur_signal), "-∞", App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
+            mAnimSignalView.setColor(Color.DKGRAY);
+        }
 
     }
 
-    private void reset() {
-        getSupportActionBar().setTitle(device.getName());
+    private int getSignalColor(float rate) {
+        int color = Color.HSVToColor(new float[]{rate * 120, 1, 1});
+        return color;
+    }
 
-        mTvDeviceName.setText(device.getIp());
-        mTvMac.setText(device.getMac());
-        mTvCurChannal.setText("" + device.getChannel());
-
-        int rate = (int) ((device.getRssi() - App.MIN_RSSI) * 100f / (App.MAX_RSSI - App.MIN_RSSI));
+    private float getRate() {
+        float rate = (device.getRssi() - App.MIN_RSSI) * 1f / (App.MAX_RSSI - App.MIN_RSSI);
         if (device.getType() == App.TYPE_DEVICE_WIFI)
-            rate = 100;
-        signalView.setDisplayString("当前信号", String.valueOf(device.getRssi()), "-111dBm", ">-49dBm", "dBm");
-        signalView.setProgress(rate);
-
-
-        int color = (int) ((100 - rate) * 0xff / 100f);
-        color = Color.HSVToColor(new float[]{rate * 120f / 100, 1, 1});
-        mAnimSignalView.setColor(color);
+            rate = 1;
+        return rate;
     }
 
 }

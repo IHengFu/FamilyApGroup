@@ -1,19 +1,16 @@
 package com.changhong.wifiairscout.db;
 
 import android.content.Context;
-
-import java.sql.SQLException;
-import java.util.ArrayList;
-
 import android.database.sqlite.SQLiteDatabase;
 
+import com.changhong.wifiairscout.db.data.DeviceLocation;
+import com.changhong.wifiairscout.db.data.ProgrammeGroup;
 import com.j256.ormlite.android.apptools.OrmLiteSqliteOpenHelper;
-import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 
-import com.changhong.wifiairscout.model.DeviceLocation;
-import com.changhong.wifiairscout.model.ProgrammeGroup;
+import java.sql.SQLException;
+import java.util.ArrayList;
 
 
 /**
@@ -41,6 +38,7 @@ public class DBHelper extends OrmLiteSqliteOpenHelper {
     private void registerTables() {
         registerTable(DeviceLocation.class);
         registerTable(ProgrammeGroup.class);
+
     }
 
     public boolean clear() {

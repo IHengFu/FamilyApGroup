@@ -33,6 +33,11 @@ public class App extends Application {
     public static final byte MAX_RSSI = -20;
     public static final byte MIN_RSSI = -111;
 
+    /**
+     * 方案最大个数
+     */
+    public static final byte MAX_NUM_PROGRAMME = 10;
+
 
     public static final int[] RES_ID_HOUME_PICTURE = {R.mipmap.house_base, R.mipmap.house1,
             R.mipmap.house2_1, R.mipmap.house2_2,

@@ -7,7 +7,7 @@ import android.text.Html
 /**
  * Created by fuheng on 2017/12/8.
  */
-class WifiDevice(var type: Byte, var ip: String?, val mac: String?, var name: String?, var channel: Byte?) : Parcelable {
+class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: String?, var channel: Byte?) : Parcelable {
     var rssi: Byte = 0
     var encryptType: Byte = -1
     var cipher: Byte = -1

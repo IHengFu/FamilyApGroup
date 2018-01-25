@@ -32,7 +32,7 @@ import java.util.List;
 
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
-import com.changhong.wifiairscout.model.DeviceLocation;
+import com.changhong.wifiairscout.db.data.DeviceLocation;
 import com.changhong.wifiairscout.model.WifiDevice;
 import com.changhong.wifiairscout.preferences.Preferences;
 import com.changhong.wifiairscout.ui.view.map.PointMap;
@@ -493,15 +493,14 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
                 DeviceLocation d = mListDeviceInfo.get(i);
                 Drawable drawable = view.getCompoundDrawables()[1];
                 view.setCompoundDrawables(null, drawable, null, null);
-                view.setTag(d.getWifiDevice());
+                view.setTag(d);
                 if (d.getWifiDevice() == null) {
-                    view.setText(d.getMac());
                     view.setEnabled(false);
                     DrawableCompat.setTint(drawable, Color.GRAY);
                 } else {
-                    view.setText(d.getWifiDevice().getName());
                     DrawableCompat.setTint(drawable, Color.YELLOW);
                 }
+                view.setText(d.getDisplayName());
             }
         if (mTypeMap != null) mTypeMap.refresh(this, mListDeviceInfo, mScale, mScrollX, mScrollY);
     }
@@ -524,9 +523,9 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
                 mDeleteTextView.setPadding(4, 4, 4, 4);
                 mDeleteTextView.setBackgroundResource(R.drawable.round_rect_delete);
                 mDeleteTextView.setImageResource(R.drawable.animatied_vector_delete);
-                Animatable drawable = (Animatable) mDeleteTextView.getDrawable();
-                drawable.start();
             }
+            Animatable drawable = (Animatable) mDeleteTextView.getDrawable();
+            drawable.start();
             mDeleteTextView.setEnabled(true);
 
             WindowManager.LayoutParams mDeleteLayoutParams = new WindowManager.LayoutParams();
@@ -643,7 +642,7 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         for (DeviceLocation location : array) {
             Log.e(getClass().getSimpleName(), "==~" + location.toString());
             View child = createDisplayView(location, mScale, mScrollX, mScrollY);
-            child.setTag(location.getWifiDevice());
+            child.setTag(location);
 
             super.addView(child);
             if (mTypeMap != null) {
@@ -683,14 +682,10 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         child.setMaxLines(1);
         child.setEllipsize(TextUtils.TruncateAt.END);
         child.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9);
-        String title;
         if (d.getWifiDevice() == null) {
-            title = d.getMac();
             child.setEnabled(false);
-        } else {
-            title = d.getWifiDevice().getName();
         }
-        child.setText(title);
+        child.setText(d.getDisplayName());
         setDisplayViewByState(child, d, scale, scrollX, scrollY);
         return child;
     }

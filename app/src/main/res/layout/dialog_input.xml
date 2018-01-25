@@ -14,7 +14,7 @@
         android:layout_height="wrap_content"
         android:maxLength="20"
         android:maxLines="1"
-        android:minWidth="160dp"
+        android:minWidth="260dp"
         android:padding="10dp" />
 
     <LinearLayout

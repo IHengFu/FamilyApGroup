@@ -47,14 +47,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:text="IP" />
+                android:text="@string/tab_name"
+                android:textColor="@android:color/white" />
 
-            <TextView
+            <EditText
                 android:id="@+id/tv_device_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="9"
-                android:text="设备名称" />
+                android:maxLength="20"
+                android:textColorHint="@color/text_click_color"
+                android:maxLines="1" />
         </TableRow>
 
         <TableRow
@@ -66,14 +69,34 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:text="MAC" />
+                android:text="@string/tab_ip"
+                android:textColor="@android:color/white" />
+
+            <TextView
+                android:id="@+id/tv_ip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@android:color/white" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="@string/tab_mac"
+                android:textColor="@android:color/white" />
 
             <TextView
                 android:id="@+id/tv_mac"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="9"
-                android:text="设备名称" />
+                android:textColor="@android:color/white" />
         </TableRow>
 
         <TableRow
@@ -85,14 +108,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:text="当前信道" />
+                android:text="@string/tab_cur_chn"
+                android:textColor="@android:color/white" />
 
             <TextView
                 android:id="@+id/tv_current_channel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="9"
-                android:text="设备名称" />
+                android:textColor="@android:color/white" />
         </TableRow>
     </TableLayout>
 

@@ -9,10 +9,12 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_retry">Retry</string>
     <string name="action_delete">Delete</string>
+    <string name="action_clear">Clear</string>
     <string name="action_add">Add</string>
     <string name="action_continue">Continue</string>
     <string name="action_refuse">Refuse</string>
     <string name="action_accept">Accept</string>
+    <string name="action_load">Load</string>
 
     <string name="ask_retry">Retry or not?</string>
     <string name="ask_save_or_not">Save or not？</string>
@@ -46,6 +48,7 @@
     <string name="title_change_channel">Set the channel your choosed（1～13）</string>
     <string name="request_sending">Request is sending……</string>
     <string name="request_send_complete">Request-send completed.</string>
+    <string name="notice_programme_max_limit">Can not add more programme because reached max number.</string>
     <!--channel condition-->
     <string name="no_data">No data</string>
     <string name="start_scan">Start scan</string>
@@ -63,4 +66,12 @@
 
     <!--OprationActivity-->
     <string name="ask_delete_recode">Are your really to delete all the programme recodes?</string>
+    <!--wifi detail-->
+    <string name="title_device_detail">Device Detail</string>
+    <string name="tab_cur_signal">Signal intensty</string>
+    <string name="offline">Offline</string>
+    <string name="tab_ip" translatable="false">IP</string>
+    <string name="tab_name">Name</string>
+    <string name="tab_mac" translatable="false">MAC</string>
+    <string name="tab_cur_chn">Current Channel</string>
 </resources>

@@ -11,10 +11,6 @@ import android.graphics.Rect;
 import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
-import android.support.v4.graphics.drawable.DrawableCompat;
-import android.text.TextUtils;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -26,7 +22,7 @@ import java.util.Locale;
 
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
-import com.changhong.wifiairscout.model.DeviceLocation;
+import com.changhong.wifiairscout.db.data.DeviceLocation;
 import com.changhong.wifiairscout.utils.CommUtils;
 import com.changhong.wifiairscout.utils.UnitUtils;
 

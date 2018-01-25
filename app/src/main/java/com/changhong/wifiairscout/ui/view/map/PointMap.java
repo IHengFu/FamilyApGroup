@@ -3,24 +3,19 @@ package com.changhong.wifiairscout.ui.view.map;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
-import android.graphics.Rect;
 import android.graphics.drawable.Animatable;
 import android.graphics.drawable.AnimatedVectorDrawable;
 import android.graphics.drawable.Drawable;
 import android.support.v4.graphics.drawable.DrawableCompat;
-import android.text.TextUtils;
-import android.util.TypedValue;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import java.util.HashMap;
 import java.util.List;
 
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
-import com.changhong.wifiairscout.model.DeviceLocation;
+import com.changhong.wifiairscout.db.data.DeviceLocation;
 
 /**
  * Created by fuheng on 2018/1/22.

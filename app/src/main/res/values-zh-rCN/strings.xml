@@ -10,10 +10,12 @@
     <string name="action_cancel">取消</string>
     <string name="action_retry">重试</string>
     <string name="action_delete">删除</string>
+    <string name="action_clear">清除</string>
     <string name="action_add">添加</string>
     <string name="action_continue">继续</string>
     <string name="action_refuse">拒绝</string>
     <string name="action_accept">接受</string>
+    <string name="action_load">加载</string>
 
     <string name="ask_retry">是否重试？</string>
     <string name="ask_save_or_not">是否保存？</string>
@@ -46,6 +48,7 @@
     <string name="title_change_channel">设置您需要切换的信道（1～13）</string>
     <string name="request_sending">请求发送中……</string>
     <string name="request_send_complete">请求发送完成。</string>
+    <string name="notice_programme_max_limit">方案个数已达最大数量，不能继续添加。</string>
     <!--channel condition-->
     <string name="no_data">无数据</string>
     <string name="start_scan">启动测试</string>
@@ -62,5 +65,10 @@
     <string name="formatChannalUsageCondition">"信道%d:%d"</string>
     <!--OprationActivity-->
     <string name="ask_delete_recode">是否确定要删除所有的方案记录?</string>
-
+    <!--wifi detail-->
+    <string name="title_device_detail">设备详情</string>
+    <string name="offline">离线</string>
+    <string name="tab_cur_signal">当前信号</string>
+    <string name="tab_name">名称</string>
+    <string name="tab_cur_chn">当前信道</string>
 </resources>
