@@ -2,11 +2,14 @@ package com.changhong.wifiairscout.ui.activity
 
 import android.content.DialogInterface
 import android.content.Intent
+import android.graphics.drawable.Animatable
 import android.os.Bundle
 import android.os.Handler
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
+import android.view.View
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import com.changhong.wifiairscout.App
@@ -46,6 +49,7 @@ class StartActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.layout_start)
+        (findViewById<ImageView>(R.id.icon).drawable as Animatable).start()
         init()
     }
 
@@ -54,7 +58,7 @@ class StartActivity : AppCompatActivity() {
             showAlertDialogConnectWifi()
         } else
             if (App.sTest) {
-                Handler().postDelayed(Runnable { goNext() }, 1000)
+                Handler().postDelayed(Runnable { goNext() }, 2000)
             } else
                 startConnectMaster()
     }
@@ -127,7 +131,7 @@ class StartActivity : AppCompatActivity() {
             startActivityForResult(Intent(android.provider.Settings.ACTION_WIFI_SETTINGS), REQUEST_SETTING_WIFI)
         }).create()
         dialog?.setCancelable(true)
-        dialog?.setOnCancelListener(){p0->
+        dialog?.setOnCancelListener() { p0 ->
             p0.dismiss()
             finish()
         }
@@ -171,7 +175,7 @@ class StartActivity : AppCompatActivity() {
 
         override fun onCancelled(task: GenericTask?) {
             if (task?.exception != null)
-                Toast.makeText(this@StartActivity, task.exception?.message?:"", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@StartActivity, task.exception?.message ?: "", Toast.LENGTH_SHORT).show()
         }
 
         override fun getName(): String {

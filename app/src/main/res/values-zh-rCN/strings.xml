@@ -51,7 +51,7 @@
     <string name="notice_programme_max_limit">方案个数已达最大数量，不能继续添加。</string>
     <!--channel condition-->
     <string name="no_data">无数据</string>
-    <string name="start_scan">启动测试</string>
+    <string name="start_scan">手动更新</string>
     <string name="optimization">一键优化</string>
     <string name="onScanChanneling">扫描信道信息中……</string>
     <string name="channel2_4">2.4G信道信息</string>
@@ -65,6 +65,10 @@
     <string name="formatChannalUsageCondition">"信道%d:%d"</string>
     <!--OprationActivity-->
     <string name="ask_delete_recode">是否确定要删除所有的方案记录?</string>
+    <string name="clean_data">清除记录</string>
+    <string name="tab_noun">低信号强度阈值：</string>
+    <string name="tab_show_type">界面显示方式：</string>
+    <string name="tab_programme_data">方案缓存数据：</string>
     <!--wifi detail-->
     <string name="title_device_detail">设备详情</string>
     <string name="offline">离线</string>

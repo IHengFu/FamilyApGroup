@@ -16,8 +16,20 @@ public class GetClientResponse extends BaseResponse {
 
     private ArrayList<WifiDevice> devices;
 
+    public GetClientResponse(short status) {
+        super(status);
+    }
+
     public GetClientResponse(byte[] data) {
         super(data);
+    }
+
+    public GetClientResponse() {
+        super();
+    }
+
+    public void init(byte[] data) {
+        super.init(data);
         int index = 2;
         byte amount = data[index++];
 
@@ -50,7 +62,7 @@ public class GetClientResponse extends BaseResponse {
                 }
             name = new String(data, offset + index, first0, App.CHARSET).trim();
         } catch (UnsupportedEncodingException e) {
-            name = new String(data, offset, 32);
+            name = new String(data, offset + index, 32).trim();
             e.printStackTrace();
         }
         index += 32;

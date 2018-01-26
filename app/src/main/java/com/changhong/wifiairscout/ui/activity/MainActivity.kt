@@ -1,6 +1,5 @@
 package com.changhong.wifiairscout.ui.activity
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.os.Bundle
 import android.os.CountDownTimer
@@ -21,6 +20,7 @@ import com.changhong.wifiairscout.db.dao.ProgrammeDao
 import com.changhong.wifiairscout.db.data.DeviceLocation
 import com.changhong.wifiairscout.db.data.ProgrammeGroup
 import com.changhong.wifiairscout.model.HouseData
+import com.changhong.wifiairscout.model.MessageData
 import com.changhong.wifiairscout.model.MessageDataFactory
 import com.changhong.wifiairscout.model.WifiDevice
 import com.changhong.wifiairscout.model.response.*
@@ -93,7 +93,6 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         })
 
         CommUtils.transparencyBar(this);
-        StartService.startService(this, StartService.ACTION_LOAD_CUR_CHANNEL)
 
         findViewById<View>(R.id.btn_start_scan).setOnClickListener(this)
         findViewById<View>(R.id.btn_optimization).setOnClickListener(this)
@@ -133,9 +132,42 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
     override fun onClick(p0: View?) {
         when (p0?.id) {
-            R.id.btn_start_scan -> StartService.startService(this@MainActivity, StartService.ACTION_LOAD_DEVICE_STATUS)
+            R.id.btn_start_scan -> doStartScan()
             R.id.btn_optimization -> startActivity(Intent(this, ChannelConditionActivity::class.java))
         }
+    }
+
+    private fun doStartScan() {
+//        StartService.startService(this@MainActivity, StartService.ACTION_LOAD_DEVICE_STATUS)
+        mUdpTask = UDPTask().execute(MessageDataFactory.getAllClientStatus(), object : TaskListener<MessageData> {
+            override fun getName(): String? {
+                return null
+            }
+
+
+            override fun onPreExecute(task: GenericTask?) {
+                showProgressDialog("", false, null)
+            }
+
+            override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
+                hideProgressDialog()
+            }
+
+            override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
+                val gcsr = GetClientStatusResponse(param?.msgBody)
+                for (device in gcsr.devices) {
+                    System.err.println("mac = ${device.mac} rssi = ${device.rssi}")
+                    device.rssi = Math.min(device.rssi - 100, -20).toByte()
+                    System.err.println("==>mac = ${device.mac} rssi = ${device.rssi}")
+                }
+                EventBus.getDefault().postSticky(gcsr)
+            }
+
+            override fun onCancelled(task: GenericTask?) {
+                hideProgressDialog()
+            }
+
+        })
     }
 
     fun getDevices(): ArrayList<WifiDevice> {
@@ -489,7 +521,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             }
             dialogInstance.dismiss()
 
-            UDPTask().execute(MessageDataFactory.setChannel(Integer.parseInt(msg)), object : TaskListener<BaseResponse> {
+            UDPTask().execute(MessageDataFactory.setChannel(Integer.parseInt(msg), App.sInstance.masterMac), object : TaskListener<BaseResponse> {
                 override fun getName(): String? {
                     return null
                 }
@@ -503,7 +535,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
                     if (result != TaskResult.OK)
                         showToast(task?.exception?.message?.toString())
                     else {
-                        StartService.startService(this@MainActivity, StartService.ACTION_LOAD_CUR_CHANNEL)
+                        StartService.startService(this@MainActivity, StartService.ACTION_LOAD_MASTER)
                         showToast(getString(R.string.request_send_complete))
                     }
                 }

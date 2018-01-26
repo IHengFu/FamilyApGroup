@@ -94,7 +94,7 @@ public class Preferences {
     }
 
     public int getRssiLimitValue() {
-        return getInt(KEY_RSSI_LIMIT_VALUE, -100);
+        return getInt(KEY_RSSI_LIMIT_VALUE, 100);
     }
 
     public void setRssiLimitValue(int value) {

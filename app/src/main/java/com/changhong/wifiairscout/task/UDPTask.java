@@ -59,15 +59,22 @@ public class UDPTask extends GenericTask implements MyCountDownTimerListener {
 
     private synchronized TaskResult connect(String ip, int port, MessageData msg) {
         try {
+            long startTime = System.currentTimeMillis();
             Log.e("请求", msg.toByteString());
             Log.e("请求", msg.toString());
             udpServer = new DatagramSocket(Preferences.getIntance().getSendPort());
             InetAddress address = InetAddress.getByName(ip);
             send(msg.getMessageData(), address, port);
 
-            Thread.sleep(1000);
+            Thread.sleep(500);
 
             while (true) {
+
+                if (System.currentTimeMillis() - startTime > 30000) {
+                    Log.e("耗时", Thread.currentThread().getName() + "  :  " + (System.currentTimeMillis() - startTime));
+                    throw new TimeoutException("通信超时");
+                }
+
                 byte[] data = receive(address, port);
                 Log.e("响应", CommUtils.toHexString(data));
                 if (data != null) {
@@ -99,6 +106,10 @@ public class UDPTask extends GenericTask implements MyCountDownTimerListener {
             e.printStackTrace();
             setException(e);
             return TaskResult.FAILED;
+        }catch (TimeoutException e){
+            e.printStackTrace();
+            setException(e);
+            return TaskResult.IO_ERROR;
         } catch (Exception e) {
             e.printStackTrace();
             setException(new Exception("错误数据"));

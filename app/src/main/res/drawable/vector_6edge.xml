@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="60dp"
+    android:height="60dp"
+    android:viewportHeight="70"
+    android:viewportWidth="70">
+    <path
+        android:pathData="M2.46,34.64l15,-30l34.64,0l15,30l-15,30l-34.64,0l-15,-30z"
+        android:strokeColor="#65cdbd"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="miter"
+        android:strokeWidth="3" />
+
+    <path
+        android:pathData="M2.6,33.64a1,1 0 1 0 1 0m6,-15a1,1 0 1 0 1 0m6.5,-15a1,1 0 1 0 1 0m16.32,0a1,1 0 1 0 1 0m16.12,0a1,1 0 1 0 1 0m6.5,14.5a1,1 0 1 0 1 0m6,15.5a1,1 0 1 0 1 0m-7.5,15a1,1 0 1 0 1 0m-8.5,15a1,1 0 1 0 1 0m-18.32,0a1,1 0 1 0 1 0m-18.32,0a1,1 0 1 0 1 0m-9.5,-15.4a1,1 0 1 0 1 0"
+        android:strokeColor="#65cdbd"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="miter"
+        android:strokeWidth="3" />
+    <path
+        android:name="connectline"
+        android:pathData="M17.46,4.64l42.3,44l-49,0l41.5,-44l-41.5,14.64l41,45l8,-45l-42,45l0,-59"
+        android:strokeColor="#65cdbd"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="miter"
+        android:strokeWidth="1" />
+</vector>

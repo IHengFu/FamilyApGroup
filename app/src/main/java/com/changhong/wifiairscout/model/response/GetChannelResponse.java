@@ -9,12 +9,32 @@ public class GetChannelResponse extends BaseResponse {
 
     private byte channel;
 
-    public GetChannelResponse(byte[] data) {
-        super(data);
+    @Override
+    public void init(byte[] data) {
+        super.init(data);
         channel = data[2];
     }
 
     public byte getChannel() {
         return channel;
+    }
+
+    public GetChannelResponse(short status) {
+        super(status);
+    }
+
+    public GetChannelResponse(byte[] data) {
+        super(data);
+    }
+
+    public GetChannelResponse() {
+        super();
+    }
+
+    @Override
+    public String toString() {
+        return "GetChannelResponse{" +
+                "channel=" + channel +
+                "} " + super.toString();
     }
 }

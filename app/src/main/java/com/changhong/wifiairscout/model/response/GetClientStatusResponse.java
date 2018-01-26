@@ -15,8 +15,20 @@ public class GetClientStatusResponse extends BaseResponse {
 
     private ArrayList<WifiDevice> devices;
 
+    public GetClientStatusResponse(short status) {
+        super(status);
+    }
+
     public GetClientStatusResponse(byte[] data) {
         super(data);
+    }
+
+    public GetClientStatusResponse() {
+        super();
+    }
+
+    public void init(byte[] data) {
+        super.init(data);
         int index = 2;
         byte amount = data[index++];
 
@@ -25,7 +37,7 @@ public class GetClientStatusResponse extends BaseResponse {
         devices = new ArrayList<>();
         for (int i = 0; i < amount; ++i) {
             devices.add(getWifiDevice(data, index));
-            index += 6 + 1;
+            index += 6 + 2;
         }
     }
 
@@ -45,8 +57,9 @@ public class GetClientStatusResponse extends BaseResponse {
         String mac = sb.toString();
 
         byte rssi = data[offset + 6];
+        boolean wlan_idx = data[offset + 7] == 0;//无线radio索引, 0: 5G; 1: 2.4G; 2: 2.4G和5G
 
-        return new WifiDevice(rssi, mac);
+        return new WifiDevice(rssi, mac, wlan_idx);
     }
 
     public ArrayList<WifiDevice> getDevices() {

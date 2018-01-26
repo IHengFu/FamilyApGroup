@@ -49,7 +49,7 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
     private TextView mTvAdviceTitle;
     private View mPanelAsk;
     private int mBestChannel;
-    private byte mCurChannel = -1;
+    private byte mCurChannel = (byte) -1;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -119,7 +119,7 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
      * 优化
      */
     private void doOptimization(int channel) {
-        mUdpTask = new UDPTask().execute(MessageDataFactory.setChannel(channel), mSetChannelListener);
+        mUdpTask = new UDPTask().execute(MessageDataFactory.setChannel(channel, App.sInstance.getMasterMac()), mSetChannelListener);
     }
 
     private void startLoadChannel() {
@@ -136,7 +136,7 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
             }
             resetData(list);
         } else
-            mUdpTask = new UDPTask().execute(MessageDataFactory.doScan(false), mScanListener);
+            mUdpTask = new UDPTask().execute(MessageDataFactory.doScan(App.sInstance.getMasterMac(), false), mScanListener);
     }
 
     private void resetData(List<WifiDevice> list) {
@@ -232,7 +232,8 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
             if (param == null)
                 return;
             ScanResponse response = new ScanResponse(param.getMsgBody());
-            resetData(response.getListAp());
+            //TODO
+            response.getListAp();
         }
 
         @Override
@@ -259,7 +260,7 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
 
         public void onProgressUpdate(GenericTask task, BaseResponse param) {
             showToast(getString(R.string.optimizationComplete));
-            StartService.Companion.startService(ChannelConditionActivity.this, StartService.ACTION_LOAD_CUR_CHANNEL);
+            StartService.Companion.startService(ChannelConditionActivity.this, StartService.ACTION_LOAD_MASTER);
             finish();
         }
 

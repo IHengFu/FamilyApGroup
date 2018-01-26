@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.changhong.wifiairscout.App;
+import com.changhong.wifiairscout.model.ScanItem;
 import com.changhong.wifiairscout.model.WifiDevice;
 
 /**
@@ -15,10 +16,22 @@ import com.changhong.wifiairscout.model.WifiDevice;
 public class ScanResponse extends BaseResponse {
 
 
-    private List<WifiDevice> mListAp;
+    private List<ScanItem> mListAp;
+
+    public ScanResponse(short status) {
+        super(status);
+    }
 
     public ScanResponse(byte[] data) {
         super(data);
+    }
+
+    public ScanResponse() {
+        super();
+    }
+
+    public void init(byte[] data) {
+        super.init(data);
         byte amount = data[2];
 
         if (amount == 0)
@@ -30,45 +43,43 @@ public class ScanResponse extends BaseResponse {
             offset += 42;
         }
 
-
     }
 
-    private WifiDevice getWifiDevice(byte[] data, int offset) {
+    private ScanItem getWifiDevice(byte[] data, int offset) {
         int index = 0;
 
-        String name;
-        try {
-            int first0 = 32;
-            for (int i = 0; i < 32; ++i)
-                if (data[offset + index + i] == 0) {
-                    first0 = i;
-                    break;
-                }
-            name = new String(data, offset + index, first0, App.CHARSET).trim();
-        } catch (UnsupportedEncodingException e) {
-            name = new String(data, offset, 32);
-            e.printStackTrace();
-        }
+        String ssid = getStringInData(data, offset + index, 32);
         index += 32;
 
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < 6; ++i) {
-            sb.append(String.format("%02x", data[offset + index++])).append(':');
-        }
-        sb.deleteCharAt(sb.length() - 1);
+        String bssid = parseToMacAddress(data, offset + index);
+        index += 6;
 
-        String mac = sb.toString();
+        byte channel = data[offset + index++];
 
-        WifiDevice ap = new WifiDevice(App.TYPE_DEVICE_WIFI, WifiDevice.Companion.toStringIp(0), mac, name, data[offset + index++]);
-        ap.setRssi(data[offset + index++]);
+        byte rssi = data[offset + index++];
+        byte encrypt = data[offset + index++];
+        byte cipher = data[offset + index++];
 
-        ap.setEncryptType(data[offset + index++]);
-        ap.setCipher(data[offset + index++]);
+        ScanItem ap = new ScanItem();
+
+        ap.setSsid(ssid);
+        ap.setBssid(bssid);
+        ap.setChannel(channel);
+        ap.setRssi(rssi);
+        ap.setEncrypt(encrypt);
+        ap.setCipher(cipher);
 
         return ap;
     }
 
-    public List<WifiDevice> getListAp() {
+    public List<ScanItem> getListAp() {
         return mListAp;
+    }
+
+    @Override
+    public String toString() {
+        return "ScanResponse{" +
+                "mListAp=" + mListAp +
+                "} " + super.toString();
     }
 }

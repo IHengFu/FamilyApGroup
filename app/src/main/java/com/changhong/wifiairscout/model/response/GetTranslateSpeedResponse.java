@@ -12,8 +12,20 @@ public class GetTranslateSpeedResponse extends BaseResponse {
 
     private List<DeviceRate> mListRate;
 
+    public GetTranslateSpeedResponse(short status) {
+        super(status);
+    }
+
     public GetTranslateSpeedResponse(byte[] data) {
         super(data);
+    }
+
+    public GetTranslateSpeedResponse() {
+        super();
+    }
+
+    public void init(byte[] data) {
+        super.init(data);
         byte amount = data[2];
         if (amount == 0)
             return;
@@ -60,5 +72,20 @@ public class GetTranslateSpeedResponse extends BaseResponse {
         public void setRate(int rate) {
             this.rate = rate;
         }
+
+        @Override
+        public String toString() {
+            return "DeviceRate{" +
+                    "mac='" + mac + '\'' +
+                    ", rate=" + rate +
+                    '}';
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "GetTranslateSpeedResponse{" +
+                "mListRate=" + mListRate +
+                "} " + super.toString();
     }
 }

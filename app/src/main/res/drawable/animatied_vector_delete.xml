@@ -4,6 +4,6 @@
 
     <target
         android:name="edge"
-        android:animation="@animator/objanim_delete" />
+        android:animation="@animator/objanim_line" />
 
 </animated-vector>

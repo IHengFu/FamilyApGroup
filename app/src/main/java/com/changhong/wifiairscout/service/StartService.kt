@@ -30,7 +30,6 @@ class StartService : Service() {
         const val ACTION_LOAD_DEVICE = 1
         const val ACTION_LOAD_DEVICE_STATUS = 2
         const val ACTION_LOAD_MASTER = 3
-        const val ACTION_LOAD_CUR_CHANNEL = 4
         const val ACTION_CHANGE_CUR_CHANNEL = 5
 
         fun startService(context: Context, action: Int) {
@@ -65,14 +64,12 @@ class StartService : Service() {
                 startLoadMaster()
                 startLoadDevice()
                 startLoadDeviceStatus()
-                loadCurrentChannel()
             }
 
             ACTION_LOAD_MASTER -> startLoadMaster()
             ACTION_LOAD_DEVICE_STATUS -> startLoadDeviceStatus()
             ACTION_LOAD_DEVICE -> startLoadDevice()
 
-            ACTION_LOAD_CUR_CHANNEL -> loadCurrentChannel()
             ACTION_CHANGE_CUR_CHANNEL -> changeCurrentChannel(intent.getIntExtra(Intent.EXTRA_CHOSEN_COMPONENT, -1))
 
         }
@@ -84,11 +81,11 @@ class StartService : Service() {
         super.onDestroy()
     }
 
-    private fun loadCurrentChannel() {
-        val msg = MessageDataFactory.getChannel()
-
-        UDPTask().execute(msg, mGetChannelListener)
-    }
+//    private fun loadCurrentChannel() {
+//        val msg = MessageDataFactory.getChannel()
+//
+//        UDPTask().execute(msg, mGetChannelListener)
+//    }
 
     private fun startConnectMaster() {
         val msg = MessageDataFactory.getRegisterMessage()
@@ -118,11 +115,12 @@ class StartService : Service() {
     private fun changeCurrentChannel(channel: Int) {
         if (channel == -1)
             return
-        val msg = MessageDataFactory.setChannel(channel)
+        val msg = MessageDataFactory.setChannel(channel,App.sInstance.masterMac)
 
         UDPTask().execute(msg, object : UDPTaskListner("修改到信道$channel……", 1, 500) {
             override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
-                loadCurrentChannel()
+//                loadCurrentChannel()
+                startLoadMaster()
             }
 
         })
@@ -252,21 +250,21 @@ class StartService : Service() {
         }
     }
 
-    private val mGetChannelListener = object : UDPTaskListner("获取当前信道……", 3, 500) {
-
-        override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
-            if (result != TaskResult.OK)
-                retry(Runnable { startLoadMaster() })
-            super.onPostExecute(task, result)
-        }
-
-        override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
-
-            val getChannelResponse = GetChannelResponse(param?.msgBody)
-            EventBus.getDefault().postSticky(getChannelResponse)
-
-        }
-    }
+//    private val mGetChannelListener = object : UDPTaskListner("获取当前信道……", 3, 500) {
+//
+//        override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
+//            if (result != TaskResult.OK)
+//                retry(Runnable { startLoadMaster() })
+//            super.onPostExecute(task, result)
+//        }
+//
+//        override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
+//
+//            val getChannelResponse = GetChannelResponse(param?.msgBody)
+//            EventBus.getDefault().postSticky(getChannelResponse)
+//
+//        }
+//    }
 
     fun closeSelf() {
         if (arrTask.isEmpty()) {

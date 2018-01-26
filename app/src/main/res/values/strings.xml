@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">WifiAirScout</string>
+    <string name="copyright" translatable="false">Copyright changhong net.All rights reserved</string>
     <string name="action_settings">Settings</string>
     <string name="action_save">Save</string>
     <string name="action_give_up">Give up</string>
@@ -66,6 +67,10 @@
 
     <!--OprationActivity-->
     <string name="ask_delete_recode">Are your really to delete all the programme recodes?</string>
+    <string name="clean_programme">Clean data</string>
+    <string name="tab_noun">Low noum：</string>
+    <string name="tab_show_type">Display style：</string>
+    <string name="tab_programme_data">Programme data：</string>
     <!--wifi detail-->
     <string name="title_device_detail">Device Detail</string>
     <string name="tab_cur_signal">Signal intensty</string>

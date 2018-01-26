@@ -12,8 +12,20 @@ import com.changhong.wifiairscout.model.WifiDevice;
 public class GetMasterResponse extends BaseResponse {
     private WifiDevice master;
 
+    public GetMasterResponse(short status) {
+        super(status);
+    }
+
     public GetMasterResponse(byte[] data) {
         super(data);
+    }
+
+    public GetMasterResponse() {
+        super();
+    }
+
+    public void init(byte[] data) {
+        super.init(data);
 
         master = getWifiDevice(data, 2);
     }
@@ -49,10 +61,47 @@ public class GetMasterResponse extends BaseResponse {
 
         String ip = sb.toString();
 
-        return new WifiDevice(App.TYPE_DEVICE_WIFI, ip, App.sInstance.getMasterMac(), name, data[index]);
+        WifiDevice wifidevice = new WifiDevice(App.TYPE_DEVICE_WIFI, ip, App.sInstance.getMasterMac(), name, data[index]);
+        wifidevice.setDual_band(data[index++]);
+        wifidevice.setWlan_idx(data[index++]);
+        wifidevice.setChannel(data[index++]);
+        wifidevice.setBound(data[index++]);
+        wifidevice.setSideband(data[index++]);
+
+        try {
+            int first0 = 32;
+            for (int i = 0; i < 32; ++i)
+                if (data[index + i] == 0) {
+                    first0 = i;
+                    break;
+                }
+            wifidevice.setSsid(new String(data, index, first0, App.CHARSET).trim());
+        } catch (UnsupportedEncodingException e) {
+            wifidevice.setSsid(new String(data, index, 32).trim());
+            e.printStackTrace();
+        } finally {
+            index += 32;
+        }
+        wifidevice.setEncrypt(data[index++]);
+        wifidevice.setCipher(data[index++]);
+
+        byte[] Key = new byte[64];
+        System.arraycopy(data, index, Key, 0, Key.length);
+
+        wifidevice.setKey(Key);
+
+
+        return wifidevice;
     }
 
     public WifiDevice getMaster() {
         return master;
+    }
+
+    @Override
+    public String toString() {
+        return "GetMasterResponse{" +
+                "master=" + master +
+                "} " + super.toString();
     }
 }

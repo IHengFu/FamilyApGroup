@@ -6,8 +6,15 @@ package com.changhong.wifiairscout.model.response;
  */
 
 public class SetChannelResponse extends BaseResponse {
+    public SetChannelResponse(short status) {
+        super(status);
+    }
+
     public SetChannelResponse(byte[] data) {
         super(data);
     }
 
+    public SetChannelResponse() {
+        super();
+    }
 }
