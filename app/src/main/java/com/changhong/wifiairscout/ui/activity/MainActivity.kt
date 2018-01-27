@@ -19,6 +19,7 @@ import com.changhong.wifiairscout.db.dao.DeviceLocationDao
 import com.changhong.wifiairscout.db.dao.ProgrammeDao
 import com.changhong.wifiairscout.db.data.DeviceLocation
 import com.changhong.wifiairscout.db.data.ProgrammeGroup
+import com.changhong.wifiairscout.interfaces.OnItemDragListener
 import com.changhong.wifiairscout.model.HouseData
 import com.changhong.wifiairscout.model.MessageData
 import com.changhong.wifiairscout.model.MessageDataFactory
@@ -81,16 +82,16 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         initViewPager()
         resetHouseStructure()
 
-        layout_apartment.setOnItemClickListener(object : AdapterView.OnItemClickListener {
-            override fun onItemClick(adapterView: AdapterView<*>?, view1: View, i: Int, l: Long) {
-                val intent = Intent(this@MainActivity, DeviceLocationDetailActivity::class.java)
-                val location = view1.getTag() as DeviceLocation
-                intent.putExtra(Intent.EXTRA_DATA_REMOVED, location.wifiDevice)
-                intent.putExtra(Intent.EXTRA_ASSIST_INPUT_DEVICE_ID, location.mac)
-                intent.putExtra(Intent.EXTRA_TEXT, location.nickName)
-                startActivityForResult(intent, REQUEST_DEVICE_DETAIL)
-            }
-        })
+        layout_apartment.setOnItemClickListener { adapterView, view1, i, l ->
+            val intent = Intent(this@MainActivity, DeviceLocationDetailActivity::class.java)
+            val location = view1.getTag() as DeviceLocation
+            intent.putExtra(Intent.EXTRA_DATA_REMOVED, location.wifiDevice)
+            intent.putExtra(Intent.EXTRA_ASSIST_INPUT_DEVICE_ID, location.mac)
+            intent.putExtra(Intent.EXTRA_TEXT, location.nickName)
+            startActivityForResult(intent, REQUEST_DEVICE_DETAIL)
+        }
+
+        layout_apartment.setOnItemDragListener { view, index -> StartService.startService(this@MainActivity, StartService.ACTION_LOAD_DEVICE_STATUS) }
 
         CommUtils.transparencyBar(this);
 
@@ -146,7 +147,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
 
             override fun onPreExecute(task: GenericTask?) {
-                showProgressDialog("", false, null)
+                showProgressDialog(getString(R.string.notice_get_device_status), false, null)
             }
 
             override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
@@ -509,6 +510,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         val dialog = DefaultInputDialog(this)
         dialog.setTitle(R.string.title_change_channel)
         dialog.setInputType(InputType.TYPE_CLASS_NUMBER)
+        dialog.setTab(R.string.tab_input_channel_number)
         dialog.setOnCommitListener { dialogInstance, msg, var3 ->
             if (msg == null || msg.length < 1 || msg.length > 2) {
                 showToast(getString(R.string.title_change_channel))
@@ -521,7 +523,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             }
             dialogInstance.dismiss()
 
-            UDPTask().execute(MessageDataFactory.setChannel(Integer.parseInt(msg), App.sInstance.masterMac), object : TaskListener<BaseResponse> {
+            UDPTask().execute(MessageDataFactory.setChannel(Integer.parseInt(msg), App.sInstance.curWlanIdx,App.sInstance.masterMac), object : TaskListener<BaseResponse> {
                 override fun getName(): String? {
                     return null
                 }

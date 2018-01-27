@@ -19,15 +19,17 @@ import com.changhong.wifiairscout.R;
 public class DefaultInputDialog extends Dialog implements View.OnClickListener {
 
     private final EditText mEditText;
+    private final TextView mTextTab;
     private OnInputDialogCommitListener mListener;
 
     public DefaultInputDialog(@NonNull Context context) {
-        super(context,0);
+        super(context, 0);
         setContentView(R.layout.dialog_input);
 
         findViewById(R.id.btn_accept).setOnClickListener(this);
         findViewById(R.id.btn_cancle).setOnClickListener(this);
         mEditText = findViewById(R.id.et_input);
+        mTextTab = findViewById(R.id.tv_tab);
     }
 
     @Override
@@ -57,7 +59,27 @@ public class DefaultInputDialog extends Dialog implements View.OnClickListener {
         mListener = listener;
     }
 
-    public static interface OnInputDialogCommitListener {
+    public void setHint(CharSequence c) {
+        mEditText.setHint(c);
+
+    }
+
+    public void setHint(int resid) {
+        mEditText.setHint(resid);
+
+    }
+
+    public void setTab(CharSequence c) {
+        mTextTab.setText(c);
+        mTextTab.setVisibility(TextUtils.isEmpty(c) ? View.GONE : View.VISIBLE);
+    }
+
+    public void setTab(int resid) {
+        mTextTab.setText(resid);
+        mTextTab.setVisibility(resid == 0 ? View.GONE : View.VISIBLE);
+    }
+
+    public interface OnInputDialogCommitListener {
         void onCommit(DialogInterface var1, String var2, boolean var3);
     }
 }

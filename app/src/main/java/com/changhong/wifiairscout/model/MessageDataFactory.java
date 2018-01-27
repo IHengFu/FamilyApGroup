@@ -119,13 +119,14 @@ public class MessageDataFactory {
     /**
      * 5.6信道 SET
      */
-    public static final MessageData setChannel(int channel,String masterMac) {
+    public static final MessageData setChannel(int channel, byte wlan_idx, String masterMac) {
         String mac = App.sInstance.getWifiInfo().getMacAddress();
         MessageData messageData = new MessageData(false, mac, false, true, System.currentTimeMillis());
         messageData.setMsgId((short) 5);
 
-        ByteArrayOutputStream baos = new ByteArrayOutputStream(7);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(8);
         baos.write(WifiDevice.Companion.to6ByteMac(masterMac), 0, 6);
+        baos.write(wlan_idx);
         baos.write(channel);
         messageData.setMsgBody(baos.toByteArray());
 
@@ -135,7 +136,7 @@ public class MessageDataFactory {
     /**
      * 5.7 扫描
      */
-    public static final MessageData doScan(String mastermac,boolean is5G) {
+    public static final MessageData doScan(String mastermac, boolean is5G) {
         String mac = App.sInstance.getWifiInfo().getMacAddress();
         MessageData messageData = new MessageData(true, mac, false, true, System.currentTimeMillis());
         messageData.setMsgId((short) 6);

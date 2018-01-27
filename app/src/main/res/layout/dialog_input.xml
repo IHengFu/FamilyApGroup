@@ -8,14 +8,30 @@
     android:paddingStart="3dip"
     android:paddingTop="9dip">
 
-    <EditText
-        android:id="@+id/et_input"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:maxLength="20"
-        android:maxLines="1"
+        android:gravity="center"
+        android:measureWithLargestChild="true"
+        android:minHeight="54dip"
         android:minWidth="260dp"
-        android:padding="10dp" />
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <TextView
+            android:id="@+id/tv_tab"
+            style="?android:attr/textAppearanceLarge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
+
+        <EditText
+            android:id="@+id/et_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:maxLength="20"
+            android:maxLines="1" />
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

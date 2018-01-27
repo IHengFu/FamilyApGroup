@@ -16,6 +16,7 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
+import android.view.DragEvent;
 import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
@@ -27,12 +28,10 @@ import android.widget.AdapterView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
 import com.changhong.wifiairscout.db.data.DeviceLocation;
+import com.changhong.wifiairscout.interfaces.OnItemDragListener;
 import com.changhong.wifiairscout.model.WifiDevice;
 import com.changhong.wifiairscout.preferences.Preferences;
 import com.changhong.wifiairscout.ui.view.map.PointMap;
@@ -40,6 +39,9 @@ import com.changhong.wifiairscout.ui.view.map.TypeMap;
 import com.changhong.wifiairscout.ui.view.map.WaveForceMap;
 import com.changhong.wifiairscout.utils.CommUtils;
 import com.changhong.wifiairscout.utils.UnitUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by fuheng on 2017/12/8.
@@ -104,6 +106,7 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
      * 绘制种类
      */
     private TypeMap mTypeMap;
+    private OnItemDragListener mOnItemDragListener;
 
 
     // CONSTRUCTOR AND HELPERS
@@ -148,7 +151,7 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         super.onFinishInflate();
     }
 
-    protected void setListeners() {
+    private void setListeners() {
         setOnTouchListener(this);
         super.setOnClickListener(this);
         setOnLongClickListener(this);
@@ -307,6 +310,9 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
                     hideDeleteView();
                     //重新定场强的样式
                     refresh();
+                    if (mOnItemDragListener != null) {
+                        mOnItemDragListener.onDrag(getChildAt(dragged), dragged);
+                    }
                     dragged = -1;
                     setDraggedRectShow(false);
                 }
@@ -724,5 +730,9 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
 
     private int getChildHeight(View child) {
         return child.getHeight() - SIZE_CHILD * 2;
+    }
+
+    public void setOnItemDragListener(OnItemDragListener l) {
+        mOnItemDragListener = l;
     }
 }

@@ -59,7 +59,7 @@ public class GetClientStatusResponse extends BaseResponse {
         byte rssi = data[offset + 6];
         boolean wlan_idx = data[offset + 7] == 0;//无线radio索引, 0: 5G; 1: 2.4G; 2: 2.4G和5G
 
-        return new WifiDevice(rssi, mac, wlan_idx);
+        return new WifiDevice(rssi, mac);
     }
 
     public ArrayList<WifiDevice> getDevices() {

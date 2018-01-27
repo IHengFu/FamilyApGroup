@@ -39,6 +39,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:text="@string/tab_noun"
                 android:textSize="16sp" />
 
@@ -83,7 +84,7 @@
                 android:text="@string/tab_show_type"
                 android:textSize="16sp" />
 
-            <android.support.v7.widget.AppCompatSpinner
+            <Spinner
                 android:id="@+id/spinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -114,6 +115,7 @@
                 android:text="@string/action_clear"
                 android:textColor="@color/text_click_color" />
         </TableRow>
+
     </TableLayout>
 
     <LinearLayout
@@ -124,8 +126,17 @@
         android:orientation="horizontal"
         android:paddingBottom="10dp">
 
+        <Button
+            android:id="@+id/btn_reset"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="30dp"
+            android:paddingRight="30dp"
+            android:text="@string/action_reset"
+            android:textColor="@color/text_click_color" />
 
-        <android.support.v7.widget.AppCompatButton
+        <Button
             android:id="@+id/btn_cancle"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"
@@ -135,7 +146,7 @@
             android:text="@string/action_cancel"
             android:textColor="@color/text_click_color" />
 
-        <android.support.v7.widget.AppCompatButton
+        <Button
             android:id="@+id/btn_save"
             style="?android:attr/buttonBarButtonStyle"
             android:layout_width="wrap_content"

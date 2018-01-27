@@ -2,15 +2,13 @@ package com.changhong.wifiairscout.model
 
 import android.os.Parcel
 import android.os.Parcelable
-import android.text.Html
 import java.util.*
 
 /**
  * Created by fuheng on 2017/12/8.
  */
-class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: String?, var channel: Byte?) : Parcelable {
+class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: String?, var channel: Byte = -1) : Parcelable {
     var rssi: Byte = 0
-    var encryptType: Byte = -1
     var cipher: Byte = -1//1:tkip; 2:aes; 3:mixed
 
     var dual_band: Byte = 0//	1	1:双频; 0:单频
@@ -28,9 +26,8 @@ class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: Str
             parcel.readString(),
             parcel.readString(),
             parcel.readString(),
-            parcel.readValue(Byte::class.java.classLoader) as? Byte) {
+            parcel.readByte()) {
         rssi = parcel.readByte()
-        encryptType = parcel.readByte()
         cipher = parcel.readByte()
         dual_band = parcel.readByte()
         wlan_idx = parcel.readByte()
@@ -43,7 +40,7 @@ class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: Str
     }
 
 
-    constructor(r: Byte, s: String, is5g: Boolean) : this(0.toByte(), null, s, null, null) {
+    constructor(r: Byte, s: String) : this(0.toByte(), null, s, null, -1) {
         rssi = r
     }
 
@@ -114,13 +111,14 @@ class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: Str
         }
     }
 
-    fun getEncryptType() = ENCRYPT_TYPE[encryptType.toInt()]
+    fun getEncryptType() = ENCRYPT_TYPE[encrypt.toInt()]
     fun getCipherName() = CIPHER_TYPE[cipher.toInt()]
 
 
     fun eat(d: WifiDevice) {
-        if (d.channel != null)
+        if (d.channel.toInt() != -1) {
             this.channel = d.channel
+        }
 
         if (d.ip != null)
             this.ip = d.ip
@@ -148,7 +146,7 @@ class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: Str
 
 
     override fun toString(): String {
-        return "WifiDevice(type=$type, ip=$ip, mac='$mac', name=$name, channel=$channel, rssi=$rssi, encryptType=$encryptType, cipher=$cipher, dual_band=$dual_band, wlan_idx=$wlan_idx, Bound=$Bound, sideband=$sideband, Ssid=$Ssid, encrypt=$encrypt, Key=${Arrays.toString(Key)})"
+        return "WifiDevice(type=$type, ip=$ip, mac='$mac', name=$name, channel=$channel, rssi=$rssi, cipher=$cipher, dual_band=$dual_band, wlan_idx=$wlan_idx, Bound=$Bound, sideband=$sideband, Ssid=$Ssid, encrypt=$encrypt, Key=${Arrays.toString(Key)})"
     }
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -156,9 +154,8 @@ class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: Str
         parcel.writeString(ip)
         parcel.writeString(mac)
         parcel.writeString(name)
-        parcel.writeValue(channel)
+        parcel.writeByte(channel)
         parcel.writeByte(rssi)
-        parcel.writeByte(encryptType)
         parcel.writeByte(cipher)
         parcel.writeByte(dual_band)
         parcel.writeByte(wlan_idx)

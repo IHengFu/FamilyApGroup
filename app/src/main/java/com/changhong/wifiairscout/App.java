@@ -27,8 +27,34 @@ public class App extends Application {
 
     private ExecutorService mThreadPool;
 
-
+    /**
+     * 路由器mac地址
+     */
     private String masterMac = null;
+    /**
+     * 5G or 2.4G
+     */
+    private byte mCurWlanIdx;
+    /**
+     * 当前信道
+     */
+    private byte mCurChannel;
+
+    public byte getCurWlanIdx() {
+        return mCurWlanIdx;
+    }
+
+    public void setCurWlanIdx(byte mCurWlanIdx) {
+        this.mCurWlanIdx = mCurWlanIdx;
+    }
+
+    public byte getCurChannel() {
+        return mCurChannel;
+    }
+
+    public void setCurChannel(byte mCurChannel) {
+        this.mCurChannel = mCurChannel;
+    }
 
     public static final byte MAX_RSSI = -20;
     public static final byte MIN_RSSI = -111;

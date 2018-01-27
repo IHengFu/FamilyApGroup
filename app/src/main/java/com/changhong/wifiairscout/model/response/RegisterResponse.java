@@ -84,6 +84,82 @@ public class RegisterResponse extends BaseResponse {
         return channel;
     }
 
+    public void setKeepalive_interval(short keepalive_interval) {
+        this.keepalive_interval = keepalive_interval;
+    }
+
+    public void setMax_msg_body_len(short max_msg_body_len) {
+        this.max_msg_body_len = max_msg_body_len;
+    }
+
+    public void setChannel(byte channel) {
+        this.channel = channel;
+    }
+
+    public byte getDual_band() {
+        return dual_band;
+    }
+
+    public void setDual_band(byte dual_band) {
+        this.dual_band = dual_band;
+    }
+
+    public byte getWlan_idx() {
+        return wlan_idx;
+    }
+
+    public void setWlan_idx(byte wlan_idx) {
+        this.wlan_idx = wlan_idx;
+    }
+
+    public byte getBound() {
+        return bound;
+    }
+
+    public void setBound(byte bound) {
+        this.bound = bound;
+    }
+
+    public byte getSideband() {
+        return sideband;
+    }
+
+    public void setSideband(byte sideband) {
+        this.sideband = sideband;
+    }
+
+    public String getSsid() {
+        return Ssid;
+    }
+
+    public void setSsid(String ssid) {
+        Ssid = ssid;
+    }
+
+    public byte getEncrypt() {
+        return encrypt;
+    }
+
+    public void setEncrypt(byte encrypt) {
+        this.encrypt = encrypt;
+    }
+
+    public byte getCipher() {
+        return cipher;
+    }
+
+    public void setCipher(byte cipher) {
+        this.cipher = cipher;
+    }
+
+    public byte[] getKey() {
+        return Key;
+    }
+
+    public void setKey(byte[] key) {
+        Key = key;
+    }
+
     @Override
     public String toString() {
         return "RegisterResponse{" +

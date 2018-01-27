@@ -119,7 +119,7 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
      * 优化
      */
     private void doOptimization(int channel) {
-        mUdpTask = new UDPTask().execute(MessageDataFactory.setChannel(channel, App.sInstance.getMasterMac()), mSetChannelListener);
+        mUdpTask = new UDPTask().execute(MessageDataFactory.setChannel(channel, App.sInstance.getCurWlanIdx(), App.sInstance.getMasterMac()), mSetChannelListener);
     }
 
     private void startLoadChannel() {

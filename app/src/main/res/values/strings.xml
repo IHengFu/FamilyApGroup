@@ -16,6 +16,7 @@
     <string name="action_refuse">Refuse</string>
     <string name="action_accept">Accept</string>
     <string name="action_load">Load</string>
+    <string name="action_reset">Reset</string>
 
     <string name="ask_retry">Retry or not?</string>
     <string name="ask_save_or_not">Save or not？</string>
@@ -50,6 +51,7 @@
     <string name="request_sending">Request is sending……</string>
     <string name="request_send_complete">Request-send completed.</string>
     <string name="notice_programme_max_limit">Can not add more programme because reached max number.</string>
+    <string name="tab_input_channel_number">Please input the channel num:</string>
     <!--channel condition-->
     <string name="no_data">No data</string>
     <string name="start_scan">Start scan</string>
@@ -67,6 +69,8 @@
 
     <!--OprationActivity-->
     <string name="ask_delete_recode">Are your really to delete all the programme recodes?</string>
+    <string name="ask_reset">Are your really to resume the default option?</string>
+    <string name="notice_data_empty">There is none  programme recodes to be clean.</string>
     <string name="clean_programme">Clean data</string>
     <string name="tab_noun">Low noum：</string>
     <string name="tab_show_type">Display style：</string>

@@ -5,14 +5,15 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatEditText;
-import android.support.v7.widget.AppCompatSpinner;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
+import android.widget.Spinner;
 
 import com.changhong.wifiairscout.R;
 import com.changhong.wifiairscout.db.DBHelper;
+import com.changhong.wifiairscout.db.dao.ProgrammeDao;
 import com.changhong.wifiairscout.preferences.Preferences;
 import com.changhong.wifiairscout.utils.CommUtils;
 
@@ -22,8 +23,8 @@ import com.changhong.wifiairscout.utils.CommUtils;
 
 public class OperationActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private AppCompatEditText mEtRssi;
-    private AppCompatSpinner mSpinner;
+    private EditText mEtRssi;
+    private Spinner mSpinner;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -36,15 +37,24 @@ public class OperationActivity extends AppCompatActivity implements View.OnClick
         toolbar.setTitle(R.string.action_settings);
 
         mSpinner = findViewById(R.id.spinner);
-        mSpinner.setSelection(Preferences.getIntance().getMapShowStyle());
         mEtRssi = findViewById(R.id.et_rssi);
-        mEtRssi.setText(String.valueOf(Preferences.getIntance().getRssiLimitValue()));
+
 
         findViewById(R.id.btn_cancle).setOnClickListener(this);
         findViewById(R.id.btn_save).setOnClickListener(this);
         findViewById(R.id.btn_clean).setOnClickListener(this);
+        findViewById(R.id.btn_reset).setOnClickListener(this);
 
         CommUtils.transparencyBar(this);
+
+        initDada();
+
+    }
+
+    private void initDada() {
+
+        mSpinner.setSelection(Preferences.getIntance().getMapShowStyle());
+        mEtRssi.setText(String.valueOf(Preferences.getIntance().getRssiLimitValue()));
     }
 
     @Override
@@ -69,10 +79,32 @@ public class OperationActivity extends AppCompatActivity implements View.OnClick
             case R.id.btn_clean:
                 askForCleanProgramme();
                 break;
+            case R.id.btn_reset:
+                askForReset();
+                break;
         }
     }
 
+    private void askForReset() {
+        new AlertDialog.Builder(this).setMessage(R.string.ask_reset).setPositiveButton(R.string.action_give_up, null).setNegativeButton(R.string.action_reset, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                DBHelper.getHelper(OperationActivity.this).clear();
+                Preferences.getIntance().removeKey(Preferences.KEY_MAP_SHOW_STYLE, Preferences.KEY_RSSI_LIMIT_VALUE);
+                initDada();
+                dialogInterface.dismiss();
+            }
+        }).create().show();
+    }
+
     private void askForCleanProgramme() {
+
+        long rows = new ProgrammeDao(this).getRowNums();
+        if (rows == 0) {
+            new AlertDialog.Builder(this).setMessage(R.string.notice_data_empty).setPositiveButton(R.string.action_cancel, null).create().show();
+            return;
+        }
+
         new AlertDialog.Builder(this).setMessage(R.string.ask_delete_recode).setPositiveButton(R.string.action_give_up, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {

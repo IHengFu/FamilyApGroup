@@ -117,7 +117,7 @@ public class TestActivity extends BaseActivtiy implements View.OnClickListener {
             case R.id.btn6:
                 break;
             case R.id.btn7:
-                new UDPTask().execute(MessageDataFactory.doScan(App.sInstance.getMasterMac(),false), new AbstractListener() {
+                new UDPTask().execute(MessageDataFactory.doScan(App.sInstance.getMasterMac(), false), new AbstractListener() {
                     @Override
                     public void onProgressUpdate(GenericTask task, MessageData param) {
                         mTextView.append(new ScanResponse(param.getMsgBody()).toString() + "\n");
@@ -140,7 +140,7 @@ public class TestActivity extends BaseActivtiy implements View.OnClickListener {
                 new UDPTask().execute(MessageDataFactory.setWorkChannel(Math.random() * 2 > 1), new AbstractListener());
                 break;
             case R.id.btn10:
-                new UDPTask().execute(MessageDataFactory.setChannel(13, App.sInstance.getMasterMac()), new AbstractListener());
+                new UDPTask().execute(MessageDataFactory.setChannel(13, App.sInstance.getCurWlanIdx(), App.sInstance.getMasterMac()), new AbstractListener());
                 break;
             case R.id.fab:
                 mTextView.setText(null);

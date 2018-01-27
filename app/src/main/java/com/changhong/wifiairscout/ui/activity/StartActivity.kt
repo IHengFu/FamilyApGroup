@@ -201,6 +201,8 @@ class StartActivity : AppCompatActivity() {
                 Preferences.getIntance().setKeepAliveInterval(rr.keepalive_interval)
                 currentChannel = rr.channel
                 App.sInstance.masterMac = param?.macString
+                App.sInstance.curChannel=rr.channel
+                App.sInstance.curWlanIdx=rr.wlan_idx
 //            startLoadDevice()
                 goNext()
             }

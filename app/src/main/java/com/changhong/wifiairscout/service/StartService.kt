@@ -37,10 +37,11 @@ class StartService : Service() {
             intent.putExtra(Intent.EXTRA_INDEX, action)
             context.startService(intent)
         }
-        fun startService(context: Context, action: Int,extraInt:Int) {
+
+        fun startService(context: Context, action: Int, extraInt: Int) {
             val intent = Intent(context, Service::class.java)
             intent.putExtra(Intent.EXTRA_INDEX, action)
-            intent.putExtra(Intent.EXTRA_CHOSEN_COMPONENT,extraInt)
+            intent.putExtra(Intent.EXTRA_CHOSEN_COMPONENT, extraInt)
             context.startService(intent)
         }
 
@@ -115,7 +116,7 @@ class StartService : Service() {
     private fun changeCurrentChannel(channel: Int) {
         if (channel == -1)
             return
-        val msg = MessageDataFactory.setChannel(channel,App.sInstance.masterMac)
+        val msg = MessageDataFactory.setChannel(channel, App.sInstance.curWlanIdx, App.sInstance.masterMac)
 
         UDPTask().execute(msg, object : UDPTaskListner("修改到信道$channel……", 1, 500) {
             override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
@@ -244,7 +245,8 @@ class StartService : Service() {
             master.name = getString(R.string.wifi)
             master.rssi = App.MIN_RSSI
             master.type = App.TYPE_DEVICE_WIFI
-
+            App.sInstance.curChannel = master.channel
+            App.sInstance.curWlanIdx = master.wlan_idx
             EventBus.getDefault().postSticky(master)
 
         }

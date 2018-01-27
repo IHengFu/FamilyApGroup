@@ -46,16 +46,19 @@ public class GetTranslateSpeedResponse extends BaseResponse {
         DeviceRate dr = new DeviceRate();
         dr.mac = sb.toString();
 
-        dr.rate = data[offset + index];
-        dr.rate = data[offset + index + 1] << 8 | dr.rate;
-        dr.rate = data[offset + index + 2] << 16 | dr.rate;
-        dr.rate = data[offset + index + 3] << 24 | dr.rate;
+        int rate = data[offset + index];
+        rate = data[offset + index + 1] << 8 | rate;
+        rate = data[offset + index + 2] << 16 | rate;
+        rate = data[offset + index + 3] << 24 | rate;
+        if (rate < 0) dr.setRate(0l + Integer.MAX_VALUE - rate);
+        else
+            dr.setRate(rate);
         return dr;
     }
 
     public class DeviceRate {
         String mac;
-        int rate;
+        long rate;
 
         public String getMac() {
             return mac;
@@ -65,19 +68,35 @@ public class GetTranslateSpeedResponse extends BaseResponse {
             this.mac = mac;
         }
 
-        public int getRate() {
+        public long getRate() {
             return rate;
         }
 
-        public void setRate(int rate) {
+        public void setRate(long rate) {
             this.rate = rate;
+        }
+
+        public String getRateString() {
+            long result = rate / 1024;
+            if (result == 0)
+                return String.format("%db/s", rate);
+
+            result /= 1024;
+            if (result == 0)
+                return String.format("%.1fkb/s", rate / 1024f);
+
+            result /= 1024;
+            if (result == 0)
+                return String.format("%.1fmb/s", rate / 1024f / 1024);
+
+            return String.format("%.1fgb/s", rate / 1024f / 1024 / 1024);
         }
 
         @Override
         public String toString() {
             return "DeviceRate{" +
                     "mac='" + mac + '\'' +
-                    ", rate=" + rate +
+                    ", rate=" + getRateString() +
                     '}';
         }
     }
