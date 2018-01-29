@@ -42,7 +42,7 @@ public class GetClientStatusResponse extends BaseResponse {
     }
 
     public GetClientStatusResponse(byte[] data, ArrayList<WifiDevice> devices) {
-        super(data);
+        super.init(data);
         this.devices = devices;
     }
 

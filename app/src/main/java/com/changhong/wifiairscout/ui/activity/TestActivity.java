@@ -9,7 +9,6 @@ import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
@@ -17,12 +16,12 @@ import com.changhong.wifiairscout.model.MessageData;
 import com.changhong.wifiairscout.model.MessageDataFactory;
 import com.changhong.wifiairscout.model.WifiDevice;
 import com.changhong.wifiairscout.model.response.BaseResponse;
-import com.changhong.wifiairscout.model.response.GetChannelResponse;
 import com.changhong.wifiairscout.model.response.GetClientResponse;
 import com.changhong.wifiairscout.model.response.GetClientStatusResponse;
 import com.changhong.wifiairscout.model.response.GetMasterResponse;
 import com.changhong.wifiairscout.model.response.GetTranslateSpeedResponse;
 import com.changhong.wifiairscout.model.response.RegisterResponse;
+import com.changhong.wifiairscout.model.response.ScanNewResponse;
 import com.changhong.wifiairscout.model.response.ScanResponse;
 import com.changhong.wifiairscout.task.GenericTask;
 import com.changhong.wifiairscout.task.TaskListener;
@@ -115,9 +114,19 @@ public class TestActivity extends BaseActivtiy implements View.OnClickListener {
                 break;
 
             case R.id.btn6:
+                if (App.sInstance.getMasterMac() == null) {
+                    showToast("请先注册");
+                    return;
+                }
+                new UDPTask().execute(MessageDataFactory.doScan(App.sInstance.getMasterMac(), App.sInstance.getCurWlanIdx()), new AbstractListener() {
+                    @Override
+                    public void onProgressUpdate(GenericTask task, MessageData param) {
+                        mTextView.append(new ScanNewResponse(param.getMsgBody()).toString() + "\n");
+                    }
+                });
                 break;
             case R.id.btn7:
-                new UDPTask().execute(MessageDataFactory.doScan(App.sInstance.getMasterMac(), false), new AbstractListener() {
+                new UDPTask().execute(MessageDataFactory.doScan(App.sInstance.getMasterMac()), new AbstractListener() {
                     @Override
                     public void onProgressUpdate(GenericTask task, MessageData param) {
                         mTextView.append(new ScanResponse(param.getMsgBody()).toString() + "\n");

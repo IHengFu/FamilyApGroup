@@ -12,12 +12,11 @@ import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.AppCompatImageView;
-import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
-import android.view.DragEvent;
 import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,6 +24,7 @@ import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.AnimationSet;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -63,7 +63,7 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
      */
     private int lastX = -1, lastY = -1;
     private double lastDistance;
-    protected boolean enabled = true, touching = false;
+    private boolean enabled = true, touching = false;
 
     // anim vars
     public static final int DURATION_ANIM = 150;
@@ -227,7 +227,12 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
     private int getIndexFromCoor(int x, int y) {
         for (int i = getChildCount() - 1; i >= 0; i--) {
             View v = getChildAt(i);
-            if (x < v.getLeft() || x > v.getRight() || y < v.getTop() || y > v.getBottom())
+
+            int left = v.getLeft() + v.getPaddingLeft();
+            int right = v.getRight() - v.getPaddingLeft();
+            int top = v.getTop() + v.getPaddingTop();
+            int bottom = v.getBottom() - v.getPaddingBottom();
+            if (x < left || x > right || y < top || y > bottom)
                 continue;
             return i;
         }
@@ -239,10 +244,13 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         if (enabled) {
             if (secondaryOnClickListener != null)
                 secondaryOnClickListener.onClick(view);
-            if (onItemClickListener != null && getLastIndex() != -1)
-                onItemClickListener.onItemClick(null,
-                        getChildAt(getLastIndex()), getLastIndex(),
-                        getLastIndex());
+            if (onItemClickListener != null && getLastIndex() != -1) {
+                int index = getLastIndex();
+                if (index != -1)
+                    onItemClickListener.onItemClick(null,
+                            getChildAt(getLastIndex()), getLastIndex(),
+                            getLastIndex());
+            }
         }
     }
 
@@ -345,10 +353,10 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         float v_width = getChildWidth(v);
         float v_height = getChildHeight(v);
 
-        x = Math.max(x, -mScrollX + v_width / 2);
-        x = Math.min(x, getWidth() - mScrollX - v_width / 2);
-        y = Math.max(y, -mScrollY + v_height / 2);
-        y = Math.min(y, getHeight() - mScrollY - v_height / 2);
+        x = Math.max(x, -mScrollX);
+        x = Math.min(x, getWidth() - mScrollX);
+        y = Math.max(y, -mScrollY);
+        y = Math.min(y, getHeight() - mScrollY);
 
         setChildLocation(dragged, x, y);
     }
@@ -358,6 +366,7 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         View v = getChildAt(dragged);
         float x = lastX;
         float y = lastY;
+        v.setPadding(0, 0, 0, 0);
         float v_width = v.getWidth();
         float v_height = v.getHeight();
         v.layout(Math.round(x - v_width / 2), Math.round(y - v_height / 2), Math.round(x + v_width / 2), Math.round(y + v_height / 2));
@@ -495,18 +504,39 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
     public void refresh() {
         if (getChildCount() > 0)
             for (int i = 0; i < getChildCount(); ++i) {
-                TextView view = (TextView) getChildAt(i);
+                View view = getChildAt(i);
+                TextView title = view.findViewById(R.id.text);
+                TextView value = view.findViewById(R.id.text1);
+                ImageView icon = view.findViewById(R.id.icon);
+
                 DeviceLocation d = mListDeviceInfo.get(i);
-                Drawable drawable = view.getCompoundDrawables()[1];
-                view.setCompoundDrawables(null, drawable, null, null);
+                title.setText(d.getDisplayName());
+                Drawable drawable = icon.getDrawable();
                 view.setTag(d);
                 if (d.getWifiDevice() == null) {
-                    view.setEnabled(false);
                     DrawableCompat.setTint(drawable, Color.GRAY);
+                    value.setText(null);
+                    value.setVisibility(View.GONE);
+                    view.setEnabled(false);
+                } else if (d.getWifiDevice().getType() == App.TYPE_DEVICE_WIFI) {
+                    DrawableCompat.setTint(drawable, Color.BLACK);
                 } else {
-                    DrawableCompat.setTint(drawable, Color.YELLOW);
+                    DrawableCompat.setTint(drawable, Color.BLACK);
+                    value.setText(d.getWifiDevice().getRssi() + "dBm");
+                    view.setEnabled(true);
+                    value.setVisibility(View.VISIBLE);
                 }
-                view.setText(d.getDisplayName());
+
+                view.measure(
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+
+                float x = d.getX() * mScale - mScrollX;
+                float y = d.getY() * mScale - mScrollY;
+                float width = Math.max(view.getMeasuredWidth(), view.getMeasuredHeight());
+                view.layout((int) (x - width / 2), (int) (y - width / 2),
+                        (int) (x + width / 2), (int) (y + width / 2));
+                view.postInvalidate();
             }
         if (mTypeMap != null) mTypeMap.refresh(this, mListDeviceInfo, mScale, mScrollX, mScrollY);
     }
@@ -664,6 +694,12 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
 
     public void setPointState(boolean pointState) {
 
+
+        if (mTypeMap != null && isPointState == pointState) {
+            Log.i(getClass().getSimpleName(), "point state not changed");
+            return;
+        }
+
         if (mTypeMap != null) {
             mTypeMap.clean(this);
         }
@@ -675,61 +711,60 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
             mTypeMap = new WaveForceMap(this.getContext(), SIZE_CHILD_TEXT, RADIUS_ROUND_RECT);
         }
 
+        isPointState = pointState;
         refresh();
 
-        isPointState = pointState;
         postInvalidate();
     }
 
     public View createDisplayView(DeviceLocation d, float scale, int scrollX, int scrollY) {
-        TextView child = new TextView(getContext());
 
-        child.setGravity(Gravity.CENTER);
-        child.setMaxLines(1);
-        child.setEllipsize(TextUtils.TruncateAt.END);
-        child.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9);
+        View child = LayoutInflater.from(getContext()).inflate(R.layout.item_device2, null, false);
+        TextView text = child.findViewById(R.id.text);
+        TextView value = child.findViewById(R.id.text1);
+        ImageView icon = child.findViewById(R.id.icon);
+
+        //set attribute
+        text.setTextSize(TypedValue.COMPLEX_UNIT_SP, 9);
         if (d.getWifiDevice() == null) {
             child.setEnabled(false);
         }
-        child.setText(d.getDisplayName());
-        setDisplayViewByState(child, d, scale, scrollX, scrollY);
+        text.setText(d.getDisplayName());
+        Drawable drawable = getResources().getDrawable(App.RESID_WIFI_DEVICE[d.getType()]).mutate();
+        if (d.getWifiDevice() == null) {
+            DrawableCompat.setTint(drawable, Color.DKGRAY);
+            value.setText(null);
+            value.setVisibility(View.GONE);
+        } else if (d.getWifiDevice().getType() == App.TYPE_DEVICE_WIFI) {
+            value.setVisibility(View.GONE);
+            DrawableCompat.setTint(drawable, Color.BLACK);
+        } else {
+            DrawableCompat.setTint(drawable, Color.BLACK);
+            value.setVisibility(View.VISIBLE);
+            value.setText(d.getWifiDevice().getRssi() + "dBm");
+        }
+        icon.setImageDrawable(drawable);
+
+        //layout
+        child.setPadding(SIZE_CHILD, SIZE_CHILD, SIZE_CHILD, SIZE_CHILD);
+        child.measure(
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+
+        float x = d.getX() * scale - scrollX;
+        float y = d.getY() * scale - scrollY;
+        float width = Math.max(child.getMeasuredWidth(), child.getMeasuredHeight());
+        child.layout((int) (x - width / 2), (int) (y - width / 2),
+                (int) (x + width / 2), (int) (y + width / 2));
         return child;
     }
 
-    private void setDisplayViewByState(TextView view, DeviceLocation d, float scale, int scrollX, int scrollY) {
-        String title = view.getText().toString();
-        view.getPaint().getTextBounds(title, 0, title.length(), mTextBoundsRect);
-        float x = d.getX() * scale - scrollX;
-        float y = d.getY() * scale - scrollY;
-
-
-        view.setBackgroundColor(Color.TRANSPARENT);
-        Drawable drawable = getResources().getDrawable(App.RESID_WIFI_DEVICE[d.getType()]).mutate();
-        drawable.setBounds(0, 0,
-                (SIZE_CHILD * drawable.getMinimumWidth() / drawable.getMinimumHeight()), SIZE_CHILD);
-        view.setGravity(Gravity.CENTER);
-        drawable = DrawableCompat.wrap(drawable);
-        view.setCompoundDrawables(null, drawable, null, null);
-        view.setBackgroundResource(R.drawable.animatied_vector_oval);
-        view.setCompoundDrawablePadding(0);
-
-        if (d.getWifiDevice() == null) {
-            DrawableCompat.setTint(drawable, Color.DKGRAY);
-        }
-        view.setPadding(SIZE_CHILD, SIZE_CHILD, SIZE_CHILD, SIZE_CHILD);
-        float width = Math.max(drawable.getBounds().width(), mTextBoundsRect.width());
-        float height = drawable.getBounds().height() + mTextBoundsRect.height() + view.getCompoundDrawablePadding() + SIZE_CHILD_TEXT;
-        width = height = Math.max(width, height) + 2 * SIZE_CHILD;
-        view.layout((int) (x - width / 2), (int) (y - height / 2),
-                (int) (x + width / 2), (int) (y + height / 2));
-    }
-
     private int getChildWidth(View child) {
-        return child.getWidth() - SIZE_CHILD * 2;
+        return child.getWidth() - child.getPaddingLeft() - child.getPaddingRight();
     }
 
     private int getChildHeight(View child) {
-        return child.getHeight() - SIZE_CHILD * 2;
+        return child.getHeight() - child.getPaddingTop() - child.getPaddingBottom();
     }
 
     public void setOnItemDragListener(OnItemDragListener l) {

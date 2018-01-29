@@ -9,13 +9,12 @@ import android.graphics.drawable.Drawable;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-
-import java.util.List;
 
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
 import com.changhong.wifiairscout.db.data.DeviceLocation;
+
+import java.util.List;
 
 /**
  * Created by fuheng on 2018/1/22.
@@ -33,7 +32,7 @@ public class PointMap implements TypeMap {
     public void refresh(ViewGroup viewGroup, List<DeviceLocation> list, float scale, int scrollX, int scrollY) {
         if (viewGroup.getChildCount() > 0)
             for (int i = 0; i < viewGroup.getChildCount(); ++i) {
-                TextView view = (TextView) viewGroup.getChildAt(i);
+                View view = viewGroup.getChildAt(i);
                 DeviceLocation d = list.get(i);
                 setDrawableAndStart(view, d);
 
@@ -45,7 +44,7 @@ public class PointMap implements TypeMap {
     public void clean(ViewGroup viewGroup) {
         if (viewGroup.getChildCount() > 0)
             for (int i = 0; i < viewGroup.getChildCount(); ++i) {
-                TextView view = (TextView) viewGroup.getChildAt(i);
+                View view = viewGroup.getChildAt(i);
                 if (view.getBackground() != null) {
                     if (view.getBackground() != null && view.getBackground() instanceof AnimatedVectorDrawable) {
                         AnimatedVectorDrawable drawable1 = ((AnimatedVectorDrawable) view.getBackground());
@@ -97,13 +96,17 @@ public class PointMap implements TypeMap {
 
     private void setDrawableAndStart(View view, DeviceLocation d) {
         if (d.getWifiDevice() != null && d.getWifiDevice().getType() != App.TYPE_DEVICE_WIFI) {
-//            if (view.getBackground() == null) {
-            Drawable drawable1 = mContext.getDrawable(R.drawable.animatied_vector_oval).mutate();
-            DrawableCompat.setTint(drawable1, getColorByRssi(d.getWifiDevice().getRssi()));
-            view.setBackground(drawable1);
-            Animatable drawable = (Animatable) drawable1;
-            drawable.start();
-//            }
+            if (view.getBackground() != null && view.getBackground() instanceof Animatable) {
+                Animatable drawable = (Animatable) view.getBackground();
+                if (!drawable.isRunning())
+                    drawable.start();
+            } else {
+                Drawable drawable1 = mContext.getDrawable(R.drawable.animatied_vector_oval).mutate();
+                DrawableCompat.setTint(drawable1, getColorByRssi(d.getWifiDevice().getRssi()));
+                view.setBackground(drawable1);
+                Animatable drawable = (Animatable) drawable1;
+                drawable.start();
+            }
         } else if (view.getBackground() != null) {
             Animatable drawable = (Animatable) view.getBackground();
             drawable.stop();

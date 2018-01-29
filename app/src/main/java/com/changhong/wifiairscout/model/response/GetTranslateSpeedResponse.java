@@ -46,13 +46,10 @@ public class GetTranslateSpeedResponse extends BaseResponse {
         DeviceRate dr = new DeviceRate();
         dr.mac = sb.toString();
 
-        int rate = data[offset + index];
-        rate = data[offset + index + 1] << 8 | rate;
-        rate = data[offset + index + 2] << 16 | rate;
-        rate = data[offset + index + 3] << 24 | rate;
-        if (rate < 0) dr.setRate(0l + Integer.MAX_VALUE - rate);
-        else
-            dr.setRate(rate);
+        for (int i = 0; i < 4; i++) {
+            long temp = data[offset + index + i];
+            dr.rate |= temp << (8 * i);
+        }
         return dr;
     }
 

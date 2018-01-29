@@ -13,18 +13,17 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
 
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
 import com.changhong.wifiairscout.db.data.DeviceLocation;
 import com.changhong.wifiairscout.utils.CommUtils;
 import com.changhong.wifiairscout.utils.UnitUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by fuheng on 2018/1/18.
@@ -64,7 +63,7 @@ public class WaveForceMap implements TypeMap {
     public void refresh(ViewGroup viewGroup, List<DeviceLocation> list, float scale, int scrollX, int scrollY) {
         if (viewGroup.getChildCount() > 0)
             for (int i = 0; i < viewGroup.getChildCount(); i++) {
-                TextView view = (TextView) viewGroup.getChildAt(i);
+                View view = viewGroup.getChildAt(i);
                 if (view.getBackground() != null)
                     view.setBackground(null);
             }
@@ -88,7 +87,7 @@ public class WaveForceMap implements TypeMap {
     public void drawSketchMap(Canvas canvas) {
         mSketchMapDrawable.draw(canvas);
         Rect rect = mSketchMapDrawable.getBounds();
-        mPathPaint.setColor(Color.WHITE);
+        mPathPaint.setColor(Color.BLACK);
         canvas.drawText(mStrIntensity[0], rect.left - mRectStrSkechMap.width() - 1, rect.bottom, mPathPaint);
         canvas.drawText(mStrIntensity[1], rect.right + 1, rect.bottom, mPathPaint);
     }

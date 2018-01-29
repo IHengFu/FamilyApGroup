@@ -78,7 +78,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="fill_horizontal"
-                    android:text="获取信道" />
+                    android:text="新扫描" />
 
                 <Button
                     android:id="@+id/btn7"

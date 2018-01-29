@@ -48,16 +48,16 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
                 android:text="@string/tab_name"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/black" />
 
             <EditText
                 android:id="@+id/tv_device_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ems="9"
+                android:ellipsize="end"
                 android:maxLength="20"
-                android:textColorHint="@color/text_click_color"
-                android:maxLines="1" />
+                android:maxLines="1"
+                android:textColorHint="@color/text_click_color" />
         </TableRow>
 
         <TableRow
@@ -70,13 +70,13 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
                 android:text="@string/tab_ip"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/black" />
 
             <TextView
                 android:id="@+id/tv_ip"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/black" />
         </TableRow>
 
         <TableRow
@@ -89,14 +89,14 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
                 android:text="@string/tab_mac"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/black" />
 
             <TextView
                 android:id="@+id/tv_mac"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="9"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/black" />
         </TableRow>
 
         <TableRow
@@ -109,14 +109,14 @@
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
                 android:text="@string/tab_cur_chn"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/black" />
 
             <TextView
                 android:id="@+id/tv_current_channel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ems="9"
-                android:textColor="@android:color/white" />
+                android:textColor="@android:color/black" />
         </TableRow>
     </TableLayout>
 

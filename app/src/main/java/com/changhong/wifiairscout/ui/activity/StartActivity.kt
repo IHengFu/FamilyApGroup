@@ -41,16 +41,19 @@ class StartActivity : AppCompatActivity() {
     var mUdpTask: UDPTask? = null
 
     var alertDialog: AlertDialog? = null
-    private var currentChannel = 0.toByte()
     private var arrayDevice: ArrayList<WifiDevice>? = null
 
     private var mIsWaitForNextPage = false
+
+    private var startTime: Long = System.currentTimeMillis()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.layout_start)
         (findViewById<ImageView>(R.id.icon).drawable as Animatable).start()
         init()
+
+        startTime = System.currentTimeMillis()
     }
 
     fun init() {
@@ -152,17 +155,8 @@ class StartActivity : AppCompatActivity() {
     }
 
     fun goNext() {
-        //将信道统一
-//        arrayDevice?.forEach { it ->
-//            it.channel = currentChannel
-//        }
-
         val intent = Intent(this@StartActivity, MainActivity::class.java)
-//        intent.putParcelableArrayListExtra(Intent.EXTRA_DATA_REMOVED, arrayDevice)
-        intent.putExtra(Intent.EXTRA_CC, currentChannel)
         startActivity(intent)
-
-//        startService(Intent(this@StartActivity, StartService::class.java))
         finish()
     }
 
@@ -188,7 +182,10 @@ class StartActivity : AppCompatActivity() {
         object : UDPTaskListner(getString(R.string.notice_init)) {
             override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
                 if (result == TaskResult.OK) {
-//                alertDialog = null//将此对象滞空，下一歩需要新的dialog
+                    if (System.currentTimeMillis() - startTime > 2000)
+                        goNext()
+                    else
+                        Handler().postDelayed(Runnable { goNext() }, 2000 - System.currentTimeMillis() + startTime)
                 } else if (task?.exception != null) {
                     Toast.makeText(this@StartActivity, task.exception?.message ?: task.exception?.javaClass?.simpleName, Toast.LENGTH_SHORT).show()
                     showAlertDialog()
@@ -199,12 +196,13 @@ class StartActivity : AppCompatActivity() {
                 val rr = RegisterResponse(param?.msgBody)
                 Preferences.getIntance().setMaxMsgBody(rr.max_msg_body_len)
                 Preferences.getIntance().setKeepAliveInterval(rr.keepalive_interval)
-                currentChannel = rr.channel
                 App.sInstance.masterMac = param?.macString
-                App.sInstance.curChannel=rr.channel
-                App.sInstance.curWlanIdx=rr.wlan_idx
+                if (App.sInstance.wifiInfo.frequency >= 5000)
+                    App.sInstance.curWlanIdx = 0
+                else
+                    App.sInstance.curWlanIdx = 1
+                App.sInstance.curChannel = rr.getCurrentWlanIdx(App.sInstance.curWlanIdx)
 //            startLoadDevice()
-                goNext()
             }
         }
     }

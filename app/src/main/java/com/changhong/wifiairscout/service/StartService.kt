@@ -33,13 +33,13 @@ class StartService : Service() {
         const val ACTION_CHANGE_CUR_CHANNEL = 5
 
         fun startService(context: Context, action: Int) {
-            val intent = Intent(context, Service::class.java)
+            val intent = Intent(context, StartService::class.java)
             intent.putExtra(Intent.EXTRA_INDEX, action)
             context.startService(intent)
         }
 
         fun startService(context: Context, action: Int, extraInt: Int) {
-            val intent = Intent(context, Service::class.java)
+            val intent = Intent(context, StartService::class.java)
             intent.putExtra(Intent.EXTRA_INDEX, action)
             intent.putExtra(Intent.EXTRA_CHOSEN_COMPONENT, extraInt)
             context.startService(intent)
@@ -108,6 +108,9 @@ class StartService : Service() {
     }
 
     private fun startLoadMaster() {
+        if (App.sInstance.masterMac == null)
+            return
+
         val msg = MessageDataFactory.getMasterInfo(App.sInstance.masterMac)
 
         UDPTask().execute(msg, mLoadMasterListener)

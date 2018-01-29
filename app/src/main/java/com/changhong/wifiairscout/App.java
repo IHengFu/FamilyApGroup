@@ -34,7 +34,7 @@ public class App extends Application {
     /**
      * 5G or 2.4G
      */
-    private byte mCurWlanIdx;
+    private byte mCurWlanIdx = 1;
     /**
      * 当前信道
      */

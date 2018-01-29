@@ -45,7 +45,6 @@
         android:layout_marginTop="5dp"
         android:gravity="center"
         style="?android:attr/textAppearanceMedium"
-        android:textColor="@android:color/white"
         android:text="@string/optimizationAdvice" />
 
     <TextView
@@ -55,7 +54,7 @@
         android:layout_marginBottom="5dp"
         android:gravity="center"
         style="?android:attr/textAppearanceSmall"
-        android:textColor="@android:color/white"
+        android:textColor="@color/textColorSecondry"
         android:text="@string/adviceChannel"
         android:textSize="12sp" />
 

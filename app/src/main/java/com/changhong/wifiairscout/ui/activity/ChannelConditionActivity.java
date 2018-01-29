@@ -1,11 +1,10 @@
 package com.changhong.wifiairscout.ui.activity;
 
-import android.app.Service;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.AppCompatTextView;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
@@ -13,27 +12,23 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-
-import java.util.ArrayList;
-import java.util.List;
-
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
 import com.changhong.wifiairscout.model.MessageData;
 import com.changhong.wifiairscout.model.MessageDataFactory;
 import com.changhong.wifiairscout.model.WifiDevice;
 import com.changhong.wifiairscout.model.response.BaseResponse;
-import com.changhong.wifiairscout.model.response.GetChannelResponse;
-import com.changhong.wifiairscout.model.response.ScanResponse;
-import com.changhong.wifiairscout.service.StartService;
+import com.changhong.wifiairscout.model.response.RegisterResponse;
+import com.changhong.wifiairscout.model.response.ScanNewResponse;
+import com.changhong.wifiairscout.preferences.Preferences;
 import com.changhong.wifiairscout.task.GenericTask;
 import com.changhong.wifiairscout.task.TaskListener;
 import com.changhong.wifiairscout.task.TaskResult;
 import com.changhong.wifiairscout.task.UDPTask;
 import com.changhong.wifiairscout.utils.CommUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Administrator on 2018/1/15.
@@ -41,7 +36,6 @@ import com.changhong.wifiairscout.utils.CommUtils;
 
 public class ChannelConditionActivity extends BaseActivtiy implements View.OnClickListener {
     private Toolbar mToolBar;
-    private UDPTask mUdpTask;
     private ListView mListView;
     private ArrayAdapter mAdapter;
     private ArrayList<String> mArrayData = new ArrayList();
@@ -49,7 +43,9 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
     private TextView mTvAdviceTitle;
     private View mPanelAsk;
     private int mBestChannel;
-    private byte mCurChannel = (byte) -1;
+
+    private List<GenericTask> mArrayTask = new ArrayList<>();
+
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -65,9 +61,9 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
 
         {
             mListView = findViewById(R.id.list_channelUsedCondetion);
-            AppCompatTextView textView = new AppCompatTextView(this);
-            textView.setText(R.string.no_data);
-            mListView.setEmptyView(textView);
+//            AppCompatTextView textView = new AppCompatTextView(this);
+//            textView.setText(R.string.no_data);
+//            mListView.setEmptyView(textView);
             mAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, mArrayData);
             mListView.setAdapter(mAdapter);
         }
@@ -79,16 +75,17 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
         findViewById(R.id.btn_accept).setOnClickListener(this);
         findViewById(R.id.btn_refuse).setOnClickListener(this);
 
-        startLoadChannel();
+        doScan();
 
-        EventBus.getDefault().register(this);
     }
 
     @Override
     protected void onDestroy() {
-        if (mUdpTask != null)
-            mUdpTask.cancle();
-        EventBus.getDefault().unregister(this);
+        if (!mArrayTask.isEmpty()) {
+            for (GenericTask genericTask : mArrayTask) {
+                genericTask.cancle();
+            }
+        }
         super.onDestroy();
     }
 
@@ -96,7 +93,7 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_accept:
-                doOptimization(mBestChannel + 1);
+                doOptimization(mBestChannel);
                 break;
             case R.id.btn_refuse:
                 finish();
@@ -119,52 +116,100 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
      * 优化
      */
     private void doOptimization(int channel) {
-        mUdpTask = new UDPTask().execute(MessageDataFactory.setChannel(channel, App.sInstance.getCurWlanIdx(), App.sInstance.getMasterMac()), mSetChannelListener);
+        if (App.sTest) {
+            showProgressDialog(getString(R.string.changeChannel), true, null);
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    hideProgressDialog();
+                }
+            }, 2000);
+        } else {
+            new UDPTask().execute(MessageDataFactory.setChannel(channel, App.sInstance.getCurWlanIdx(), App.sInstance.getMasterMac()), mSetChannelListener);
+        }
     }
 
-    private void startLoadChannel() {
+    private void doScan() {
         if (App.sTest) {
-            List<WifiDevice> list = new ArrayList<>();
+            int[] NUMBER_OF_CHANNEL;
+            if (App.sInstance.getCurWlanIdx() == 0) {
+                NUMBER_OF_CHANNEL = getResources().getIntArray(R.array.channel_5g_cn);
+            } else {
+                NUMBER_OF_CHANNEL = new int[13];
+                for (int i = 0; i < NUMBER_OF_CHANNEL.length; i++) {
+                    NUMBER_OF_CHANNEL[i] = i + 1;
+                }
+            }
+
+            List<ScanNewResponse.ScanRusult> list = new ArrayList<>();
             int length = (int) (Math.random() * 50);
 
             for (int i = 0; i < length; ++i) {
-                String ip = WifiDevice.Companion.toStringIp(((int) Math.random() * Integer.MAX_VALUE));
-                String mac = "AA:BB:CC:DD:EE:FF";
-                byte channel = (byte) (Math.random() * 12 + 1);
-                WifiDevice device = new WifiDevice(App.TYPE_DEVICE_CLIENT, ip, mac, "test", channel);
+                byte channel = (byte) NUMBER_OF_CHANNEL[(int) (Math.random() * NUMBER_OF_CHANNEL.length)];
+                ScanNewResponse.ScanRusult device = new ScanNewResponse.ScanRusult(channel, App.MIN_RSSI);
                 list.add(device);
             }
             resetData(list);
         } else
-            mUdpTask = new UDPTask().execute(MessageDataFactory.doScan(App.sInstance.getMasterMac(), false), mScanListener);
+            new UDPTask().execute(MessageDataFactory.doScan(App.sInstance.getMasterMac(), App.sInstance.getCurWlanIdx()), mScanListener);
     }
 
-    private void resetData(List<WifiDevice> list) {
+
+    private void resetData(List<ScanNewResponse.ScanRusult> list) {
         mArrayData.clear();
-        int[] num_channel = new int[13];
-        for (WifiDevice wifiDevice : list) {
-            num_channel[wifiDevice.getChannel() - 1]++;
+        int[] NUMBER_OF_CHANNEL;
+        if (App.sInstance.getCurWlanIdx() == 0) {
+            NUMBER_OF_CHANNEL = getResources().getIntArray(R.array.channel_5g_cn);
+        } else {
+            NUMBER_OF_CHANNEL = new int[13];
+            for (int i = 0; i < NUMBER_OF_CHANNEL.length; i++) {
+                NUMBER_OF_CHANNEL[i] = i + 1;
+            }
+        }
+        //统计各信道AP数量
+        int[] num_channel = new int[NUMBER_OF_CHANNEL.length];
+        for (ScanNewResponse.ScanRusult sr : list) {
+            for (int i = 0; i < NUMBER_OF_CHANNEL.length; i++) {
+                if (NUMBER_OF_CHANNEL[i] == sr.getChannel()) {
+                    num_channel[i]++;
+                    break;
+                }
+            }
         }
 
         float minWeight = Float.MAX_VALUE;
-        float temp = 0;
+        float temp;
         for (int i = 0; i < num_channel.length; ++i) {
             mArrayData.add(String.format(getString(R.string.formatChannalUsageCondition), i + 1, num_channel[i]));
             temp = num_channel[i];
             if (i > 0)
                 temp += 0.3f * num_channel[i - 1];
+            if (i > 1)
+                temp += 0.15f * num_channel[i - 2];
+            if (i > 2)
+                temp += 0.075f * num_channel[i - 3];
+            if (i > 3)
+                temp += 0.0375 * num_channel[i - 4];
+
             if (i < num_channel.length - 1)
                 temp += 0.3f * num_channel[i + 1];
+            if (i < num_channel.length - 2)
+                temp += 0.15f * num_channel[i + 2];
+            if (i < num_channel.length - 3)
+                temp += 0.075f * num_channel[i + 3];
+            if (i < num_channel.length - 4)
+                temp += 0.0375f * num_channel[i + 4];
+
             if (minWeight > temp) {
                 minWeight = temp;
-                mBestChannel = i;
+                mBestChannel = NUMBER_OF_CHANNEL[i];
             }
         }
 
 
-        mTvAdvice.setText(String.format(getString(R.string.adviceChannel), mBestChannel + 1));
+        mTvAdvice.setText(String.format(getString(R.string.adviceChannel), mBestChannel));
         mAdapter.notifyDataSetChanged();
-        if (mCurChannel != -1 && mBestChannel == mCurChannel) {
+        if (App.sInstance.getCurChannel() != -1 && mBestChannel == App.sInstance.getCurChannel()) {
             mTvAdviceTitle.setText(R.string.noticeCurChannelBest);
             mTvAdvice.setVisibility(View.GONE);
             mPanelAsk.setVisibility(View.GONE);
@@ -212,16 +257,18 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
                     finish();
                 }
             });
+            mArrayTask.add(task);
         }
 
         @Override
         public void onPostExecute(GenericTask task, TaskResult result) {
+            mArrayTask.remove(task);
             hideProgressDialog();
             if (result != TaskResult.OK) {
                 showAlertDialog(task.getException().getMessage(), new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
-                        startLoadChannel();
+                        doScan();
                     }
                 });
             }
@@ -231,17 +278,17 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
         public void onProgressUpdate(GenericTask task, MessageData param) {
             if (param == null)
                 return;
-            ScanResponse response = new ScanResponse(param.getMsgBody());
-            //TODO
-            response.getListAp();
+            ScanNewResponse response = new ScanNewResponse(param.getMsgBody());
+            resetData(response.getListAp());
         }
 
         @Override
         public void onCancelled(GenericTask task) {
             hideProgressDialog();
+            mArrayTask.remove(task);
         }
     };
-    private TaskListener mSetChannelListener = new TaskListener<BaseResponse>() {
+    private TaskListener mSetChannelListener = new TaskListener<MessageData>() {
         @Override
         public String getName() {
             return null;
@@ -249,28 +296,71 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
 
         public void onPreExecute(GenericTask task) {
             showProgressDialog(getString(R.string.changeChannel), true, null);
+            mArrayTask.add(task);
         }
 
         public void onPostExecute(GenericTask task, TaskResult result) {
+            mArrayTask.remove(task);
             hideProgressDialog();
             if (result != TaskResult.OK) {
                 showToast(task.getException().getMessage());
-            }
+            } else
+                doRegister();
         }
 
-        public void onProgressUpdate(GenericTask task, BaseResponse param) {
+        public void onProgressUpdate(GenericTask task, MessageData param) {
             showToast(getString(R.string.optimizationComplete));
-            StartService.Companion.startService(ChannelConditionActivity.this, StartService.ACTION_LOAD_MASTER);
-            finish();
         }
 
         public void onCancelled(GenericTask task) {
             hideProgressDialog();
+            mArrayTask.remove(task);
         }
     };
 
-    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
-    public void onDataSynEvent(GetChannelResponse event) {
-        mCurChannel = event.getChannel();
+    private void doRegister() {
+        new UDPTask().execute(MessageDataFactory.getRegisterMessage(), mRegisterListener);
     }
+
+    private TaskListener mRegisterListener = new TaskListener<MessageData>() {
+        @Override
+        public String getName() {
+            return null;
+        }
+
+        @Override
+        public void onPreExecute(GenericTask task) {
+            mArrayTask.add(task);
+            showProgressDialog(getString(R.string.noticeWaitForReconnect), false, null);
+        }
+
+        @Override
+        public void onPostExecute(GenericTask task, TaskResult result) {
+            mArrayTask.remove(task);
+            if (result != TaskResult.OK)
+                doRegister();
+            else {
+                hideProgressDialog();
+                finish();
+            }
+        }
+
+        @Override
+        public void onProgressUpdate(GenericTask task, MessageData param) {
+            RegisterResponse rr = new RegisterResponse(param.getMsgBody());
+            Preferences.getIntance().setMaxMsgBody(rr.getMax_msg_body_len());
+            Preferences.getIntance().setKeepAliveInterval(rr.getKeepalive_interval());
+            App.sInstance.setMasterMac(param.getMacString());
+            if (App.sInstance.getWifiInfo().getFrequency() >= 5000)
+                App.sInstance.setCurWlanIdx((byte) 0);
+            else
+                App.sInstance.setCurWlanIdx((byte) 1);
+            App.sInstance.setCurChannel(rr.getCurrentWlanIdx(App.sInstance.getCurWlanIdx()));
+        }
+
+        @Override
+        public void onCancelled(GenericTask task) {
+            mArrayTask.remove(task);
+        }
+    };
 }

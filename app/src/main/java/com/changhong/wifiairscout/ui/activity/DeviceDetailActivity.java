@@ -70,7 +70,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
         mAnimSignalView = findViewById(R.id.view_anim_signal);
     }
 
-    protected void setEditTextDeable(){
+    protected void setEditTextDeable() {
         mTvDeviceName.setEnabled(false);
         mTvDeviceName.setBackground(null);
     }
@@ -124,11 +124,18 @@ public class DeviceDetailActivity extends AppCompatActivity {
             mTvDeviceName.setText(device.getName());
 
             mAnimSignalView.setVisibility(View.VISIBLE);
-
-            signalView.setDisplayString(getString(R.string.tab_cur_signal), String.valueOf(device.getRssi()), App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
-            float rate = getRate();
-            signalView.setProgress((int) rate);
-            mAnimSignalView.setColor(getSignalColor(rate));
+            if (device.getType() == App.TYPE_DEVICE_WIFI)
+            {
+                signalView.setDisplayString(getString(R.string.tab_cur_signal), "∞", App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
+                signalView.setProgress(100);
+            }
+            else
+            {
+                signalView.setDisplayString(getString(R.string.tab_cur_signal), String.valueOf(device.getRssi()), App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
+                float rate = getRate();
+                signalView.setProgress((int) rate);
+                mAnimSignalView.setColor(getSignalColor(rate));
+            }
         } else {
             mTvIP.setText(null);
             mTvIP.setText(null);

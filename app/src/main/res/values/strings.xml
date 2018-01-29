@@ -48,6 +48,7 @@
     <string name="programme">Programme</string>
     <string name="average">Average Value</string>
     <string name="title_change_channel">Set the channel your choosed（1～13）</string>
+    <string name="title_change_channel_5g">Set the channel your choosed（%s）</string>
     <string name="request_sending">Request is sending……</string>
     <string name="request_send_complete">Request-send completed.</string>
     <string name="notice_programme_max_limit">Can not add more programme because reached max number.</string>
@@ -66,6 +67,7 @@
     <string name="noticeCurChannelBest">Current Channel is the best.</string>
     <string name="adviceChannel">Advice to use %d channel.</string>
     <string name="formatChannalUsageCondition">"Channel %d:%d"</string>
+    <string name="noticeWaitForReconnect">Channel change complete,please wait for reconnect……</string>
 
     <!--OprationActivity-->
     <string name="ask_delete_recode">Are your really to delete all the programme recodes?</string>

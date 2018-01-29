@@ -42,8 +42,8 @@ public class UDPTask extends GenericTask implements MyCountDownTimerListener {
         params.put("msg", msg);
         execute(params);
 
-        myCountDownTimer = new MyCountDownTimer(30000, 30000, this);
-        myCountDownTimer.start();
+//        myCountDownTimer = new MyCountDownTimer(30000, 30000, this);
+//        myCountDownTimer.start();
         return this;
     }
 

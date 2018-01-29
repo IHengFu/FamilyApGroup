@@ -53,8 +53,6 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
     private var mUdpTask: GenericTask? = null
 
-    private var mCurChannel = -1
-
     companion object {
         const val REQUEST_OPRATION = 2 //设置请求的code
         const val REQUEST_DEVICE_DETAIL = 8 //设置请求的code
@@ -98,7 +96,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         findViewById<View>(R.id.btn_start_scan).setOnClickListener(this)
         findViewById<View>(R.id.btn_optimization).setOnClickListener(this)
 
-//        startFlushRssi()
+        startFlushRssi()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -108,7 +106,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
                 return true
             }
             android.R.id.home -> {
-                startActivity(Intent(this@MainActivity, OperationActivity::class.java))
+                startActivityForResult(Intent(this@MainActivity, OperationActivity::class.java), REQUEST_OPRATION)
                 return true
             }
             R.id.action_save_programme -> {
@@ -288,12 +286,6 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
     }
 
-
-    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
-    fun onDataSynEvent(event: GetChannelResponse) {
-        mCurChannel = event.channel.toInt()
-    }
-
     override fun onBackPressed() {
         android.os.Process.killProcess(android.os.Process.myPid())
         super.onBackPressed()
@@ -316,7 +308,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
     /**test**/
     private fun startFlushRssi() {
         if (flashCountTimer == null)
-            flashCountTimer = object : CountDownTimer(System.currentTimeMillis(), 5000) {
+            flashCountTimer = object : CountDownTimer(System.currentTimeMillis(), 10000) {
                 override fun onFinish() {
                     System.err.println("onFinish")
                     finish()
@@ -437,7 +429,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
                 it.group = groupId
                 dDao.add(it)
 
-                if (it.wifiDevice != null) {
+                if (it.wifiDevice != null && it.wifiDevice?.type != App.TYPE_DEVICE_WIFI) {
                     sum = sum + it?.wifiDevice?.rssi?.toInt()!!
                     count++;
                 }
@@ -508,7 +500,22 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
     private fun askForChangeChannel() {
         val dialog = DefaultInputDialog(this)
-        dialog.setTitle(R.string.title_change_channel)
+        val NUMBER_OF_CHANNEL: IntArray
+        val title: String
+        if (App.sInstance.curWlanIdx.toInt() == 0) {
+            NUMBER_OF_CHANNEL = resources.getIntArray(R.array.channel_5g_cn)
+            val temp = StringBuilder()
+            NUMBER_OF_CHANNEL.forEach { it -> temp.append(it).append(',') }
+            temp.deleteCharAt(temp.length - 1)
+            title = String.format(getString(R.string.title_change_channel_5g, temp.toString()))
+        } else {
+            title = getString(R.string.title_change_channel)
+            NUMBER_OF_CHANNEL = IntArray(13)
+            for (i in NUMBER_OF_CHANNEL.indices) {
+                NUMBER_OF_CHANNEL[i] = i + 1
+            }
+        }
+        dialog.setTitle(title)
         dialog.setInputType(InputType.TYPE_CLASS_NUMBER)
         dialog.setTab(R.string.tab_input_channel_number)
         dialog.setOnCommitListener { dialogInstance, msg, var3 ->
@@ -517,13 +524,29 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
                 return@setOnCommitListener
             }
             val channel = Integer.parseInt(msg)
-            if (channel < 1 || channel > 13) {
-                showToast(getString(R.string.title_change_channel))
-                return@setOnCommitListener
+            if (App.sInstance.curWlanIdx.toInt() == 0) {
+                var isCorrect = false
+                NUMBER_OF_CHANNEL.forEach { it ->
+                    if (channel == it) {
+                        isCorrect = true
+                        return@forEach
+                    }
+                }
+                if (isCorrect) {
+                    showToast(title)
+                    return@setOnCommitListener
+                }
+
+            } else {
+                if (channel < 1 || channel > 13) {
+                    showToast(title)
+                    return@setOnCommitListener
+                }
             }
+
             dialogInstance.dismiss()
 
-            UDPTask().execute(MessageDataFactory.setChannel(Integer.parseInt(msg), App.sInstance.curWlanIdx,App.sInstance.masterMac), object : TaskListener<BaseResponse> {
+            UDPTask().execute(MessageDataFactory.setChannel(Integer.parseInt(msg), App.sInstance.curWlanIdx, App.sInstance.masterMac), object : TaskListener<BaseResponse> {
                 override fun getName(): String? {
                     return null
                 }

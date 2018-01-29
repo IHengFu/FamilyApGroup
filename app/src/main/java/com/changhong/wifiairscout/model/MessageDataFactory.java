@@ -40,7 +40,7 @@ public class MessageDataFactory {
         byte[] ipdata = WifiDevice.Companion.to4ByteIp(IP);
         System.arraycopy(ipdata, 0, msgbody, 33, ipdata.length);
 
-        msgbody[37] = (byte) (App.sInstance.getWifiInfo().getFrequency() / 2400 < 2 ? 1 : 0);
+        msgbody[37] = (byte) (App.sInstance.getWifiInfo().getFrequency() < 5000 ? 1 : 0);
 
         messageData.setMsgBody(msgbody);
         return messageData;
@@ -136,14 +136,14 @@ public class MessageDataFactory {
     /**
      * 5.7 扫描
      */
-    public static final MessageData doScan(String mastermac, boolean is5G) {
+    public static final MessageData doScan(String mastermac) {
         String mac = App.sInstance.getWifiInfo().getMacAddress();
         MessageData messageData = new MessageData(true, mac, false, true, System.currentTimeMillis());
         messageData.setMsgId((short) 6);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream(7);
         baos.write(WifiDevice.Companion.to6ByteMac(mastermac), 0, 6);
-        baos.write(is5G ? 0 : 1);
+        baos.write(App.sInstance.getCurWlanIdx());
         messageData.setMsgBody(baos.toByteArray());
 
         return messageData;
@@ -178,4 +178,21 @@ public class MessageDataFactory {
         messageData.setMsgBody(baos.toByteArray());
         return messageData;
     }
+
+    /**
+     * 5.10 扫描
+     */
+    public static final MessageData doScan(String mastermac, byte wlan_index) {
+        String mac = App.sInstance.getWifiInfo().getMacAddress();
+        MessageData messageData = new MessageData(true, mac, false, true, System.currentTimeMillis());
+        messageData.setMsgId((short) 9);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(7);
+        baos.write(WifiDevice.Companion.to6ByteMac(mastermac), 0, 6);
+        baos.write(wlan_index);
+        messageData.setMsgBody(baos.toByteArray());
+
+        return messageData;
+    }
+
 }
