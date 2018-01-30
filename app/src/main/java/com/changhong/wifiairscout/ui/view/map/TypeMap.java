@@ -27,6 +27,9 @@ public interface TypeMap {
             0.8816249605953462f,
             0.40771973258763594f};
 
+    public static final int COLOR_STRONG = 0xff55ff55;
+    public static final int COLOR_WEAK = 0xffff5555;
+
 //    static {
 //        ARR_DISTANCE_RATE = new float[RATE_WAVE.length];
 //        for (int i = 0; i < ARR_DISTANCE_RATE.length; i++) {
@@ -48,7 +51,7 @@ public interface TypeMap {
 
     void onLayout(boolean changed, int l, int t, int r, int b, float scale, int scrollX, int scrollY);
 
-    void onAdd(ViewGroup group,View view,DeviceLocation d);
+    void onAdd(ViewGroup group, View view, DeviceLocation d);
 
-    void onRemove(View view,DeviceLocation d);
+    void onRemove(View view, DeviceLocation d);
 }

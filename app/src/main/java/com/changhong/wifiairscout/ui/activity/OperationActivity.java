@@ -114,6 +114,7 @@ public class OperationActivity extends AppCompatActivity implements View.OnClick
             @Override
             public void onClick(DialogInterface dialogInterface, int i) {
                 DBHelper.getHelper(OperationActivity.this).clear();
+                setResult(RESULT_OK);
                 dialogInterface.dismiss();
             }
         }).create().show();

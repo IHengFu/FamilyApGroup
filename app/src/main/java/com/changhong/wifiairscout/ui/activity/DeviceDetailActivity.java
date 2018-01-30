@@ -124,16 +124,13 @@ public class DeviceDetailActivity extends AppCompatActivity {
             mTvDeviceName.setText(device.getName());
 
             mAnimSignalView.setVisibility(View.VISIBLE);
-            if (device.getType() == App.TYPE_DEVICE_WIFI)
-            {
+            if (device.getType() == App.TYPE_DEVICE_WIFI) {
                 signalView.setDisplayString(getString(R.string.tab_cur_signal), "∞", App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
                 signalView.setProgress(100);
-            }
-            else
-            {
+            } else {
                 signalView.setDisplayString(getString(R.string.tab_cur_signal), String.valueOf(device.getRssi()), App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
                 float rate = getRate();
-                signalView.setProgress((int) rate);
+                signalView.setProgress((int) rate * 100);
                 mAnimSignalView.setColor(getSignalColor(rate));
             }
         } else {

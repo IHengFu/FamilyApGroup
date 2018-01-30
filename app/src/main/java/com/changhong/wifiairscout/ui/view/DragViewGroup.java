@@ -226,12 +226,13 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
 
     private int getIndexFromCoor(int x, int y) {
         for (int i = getChildCount() - 1; i >= 0; i--) {
-            View v = getChildAt(i);
+            View child = getChildAt(i);
+            View v = child.findViewById(R.id.panel1);
 
-            int left = v.getLeft() + v.getPaddingLeft();
-            int right = v.getRight() - v.getPaddingLeft();
-            int top = v.getTop() + v.getPaddingTop();
-            int bottom = v.getBottom() - v.getPaddingBottom();
+            int left = child.getLeft() + v.getLeft() + v.getPaddingLeft();
+            int right = child.getLeft() + v.getRight() - v.getPaddingLeft();
+            int top = child.getTop() + v.getTop() + v.getPaddingTop();
+            int bottom = child.getTop() + v.getBottom() - v.getPaddingBottom();
             if (x < left || x > right || y < top || y > bottom)
                 continue;
             return i;
@@ -270,6 +271,7 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
 
     private void setChildLocation(int index, float x, float y) {
         View v = getChildAt(index);
+//        v.setPadding(SIZE_CHILD, SIZE_CHILD, SIZE_CHILD, SIZE_CHILD);
         v.layout(Math.round(x - v.getWidth() / 2),
                 Math.round(y - v.getHeight() / 2),
                 Math.round(x + v.getWidth() / 2),
@@ -307,10 +309,14 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
                     float v_width = getChildWidth(v);
                     float v_height = getChildHeight(v);
 
-                    x = Math.max(x, -mScrollX + v_width / 2);
-                    x = Math.min(x, getWidth() - mScrollX - v_width / 2);
-                    y = Math.max(y, -mScrollY + v_height / 2);
-                    y = Math.min(y, getHeight() - mScrollY - v_height / 2);
+//                    x = Math.max(x, -mScrollX + v_width / 2);
+//                    x = Math.min(x, getWidth() - mScrollX - v_width / 2);
+//                    y = Math.max(y, -mScrollY + v_height / 2);
+//                    y = Math.min(y, getHeight() - mScrollY - v_height / 2);
+                    x = Math.max(x, -mScrollX);
+                    x = Math.min(x, getWidth() - mScrollX);
+                    y = Math.max(y, -mScrollY);
+                    y = Math.min(y, getHeight() - mScrollY);
 
                     setChildLocation(dragged, x, y);
                     //将移动了的view 的值存入对象
@@ -366,7 +372,7 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         View v = getChildAt(dragged);
         float x = lastX;
         float y = lastY;
-        v.setPadding(0, 0, 0, 0);
+//        v.setPadding(0, 0, 0, 0);
         float v_width = v.getWidth();
         float v_height = v.getHeight();
         v.layout(Math.round(x - v_width / 2), Math.round(y - v_height / 2), Math.round(x + v_width / 2), Math.round(y + v_height / 2));
@@ -539,6 +545,7 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
                 view.postInvalidate();
             }
         if (mTypeMap != null) mTypeMap.refresh(this, mListDeviceInfo, mScale, mScrollX, mScrollY);
+
     }
 
     private void initPaint() {
@@ -746,7 +753,7 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         icon.setImageDrawable(drawable);
 
         //layout
-        child.setPadding(SIZE_CHILD, SIZE_CHILD, SIZE_CHILD, SIZE_CHILD);
+//        child.setPadding(SIZE_CHILD, SIZE_CHILD, SIZE_CHILD, SIZE_CHILD);
         child.measure(
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
                 View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));

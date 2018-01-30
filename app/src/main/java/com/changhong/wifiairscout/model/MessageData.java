@@ -112,7 +112,7 @@ public class MessageData {
     public String getMacString() {
         StringBuilder sb = new StringBuilder();
         for (byte b : mac) {
-            sb.append(String.format("%x", b & 0xff)).append(':');
+            sb.append(String.format("%02x", b & 0xff)).append(':');
         }
         sb.deleteCharAt(sb.length() - 1);
         return sb.toString();

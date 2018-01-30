@@ -43,4 +43,21 @@
         <item>157</item>
         <item>161</item>
     </integer-array>
+    <integer-array name="channel_5g_cn_frequency">
+        <item>5180</item>
+        <item>5200</item>
+        <item>5220</item>
+        <item>5240</item>
+        <item>5260</item>
+        <item>5280</item>
+        <item>5300</item>
+        <item>5320</item>
+        <item>5500</item>
+        <item>5520</item>
+        <item>5745</item>
+        <item>5765</item>
+        <item>5785</item>
+        <item>5805</item>
+        <item>5825</item>
+    </integer-array>
 </resources>

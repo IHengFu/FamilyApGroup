@@ -4,7 +4,7 @@
     android:drawable="@drawable/vector_6edge">
 
     <target
-        android:name="connectline"
+        android:name="edge"
         android:animation="@animator/objanim_line"/>
 
 </animated-vector>

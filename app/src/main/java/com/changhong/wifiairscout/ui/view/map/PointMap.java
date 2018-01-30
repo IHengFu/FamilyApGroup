@@ -9,10 +9,12 @@ import android.graphics.drawable.Drawable;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
 import com.changhong.wifiairscout.db.data.DeviceLocation;
+import com.changhong.wifiairscout.preferences.Preferences;
 
 import java.util.List;
 
@@ -36,6 +38,19 @@ public class PointMap implements TypeMap {
                 DeviceLocation d = list.get(i);
                 setDrawableAndStart(view, d);
 
+//                ImageView imageview = view.findViewById(R.id.img_background);
+//                if (imageview.getVisibility() != View.GONE)
+//                    imageview.setVisibility(View.GONE);
+                view.measure(
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                        View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+
+                float x = d.getX() * scale - scrollX;
+                float y = d.getY() * scale - scrollY;
+                float width = Math.max(view.getMeasuredWidth(), view.getMeasuredHeight());
+                view.layout((int) (x - width / 2), (int) (y - width / 2),
+                        (int) (x + width / 2), (int) (y + width / 2));
+                view.postInvalidate();
             }
     }
 
@@ -45,13 +60,10 @@ public class PointMap implements TypeMap {
         if (viewGroup.getChildCount() > 0)
             for (int i = 0; i < viewGroup.getChildCount(); ++i) {
                 View view = viewGroup.getChildAt(i);
-                if (view.getBackground() != null) {
-                    if (view.getBackground() != null && view.getBackground() instanceof AnimatedVectorDrawable) {
-                        AnimatedVectorDrawable drawable1 = ((AnimatedVectorDrawable) view.getBackground());
-                        drawable1.stop();
-                    }
-                    view.setBackground(null);
-                }
+                ImageView imageview = view.findViewById(R.id.img_background);
+                Animatable drawable = (Animatable) imageview.getDrawable();
+                drawable.stop();
+                imageview.setVisibility(View.GONE);
             }
     }
 
@@ -77,40 +89,58 @@ public class PointMap implements TypeMap {
 
     @Override
     public void onRemove(View view, DeviceLocation d) {
-        if (view.getBackground() != null && view.getBackground() instanceof Animatable)
-            ((Animatable) view.getBackground()).stop();
+        ImageView imageview = view.findViewById(R.id.img_background);
+        Animatable drawable = (Animatable) imageview.getDrawable();
+        drawable.stop();
+        imageview.setVisibility(View.GONE);
+//        if (view.getBackground() != null && view.getBackground() instanceof Animatable)
+//            ((Animatable) view.getBackground()).stop();
     }
 
     private int getColorByRssi(int rssi) {
         float rate = rssi - App.MIN_RSSI;
         rate /= App.MAX_RSSI - App.MIN_RSSI;
-//        for (int i = 0; i < RATE_WAVE.length; i++) {
-//            if (rate < RATE_WAVE[i]) {
-//                return COLOR_PATH_RANGE[i] | 0xff000000;
-//            }
-//        }
-//        return Color.GREEN;
+//        return Color.HSVToColor(new float[]{rate * 120f, 1, 1});
 
-        return Color.HSVToColor(new float[]{rate * 120f, 1, 1});
+        if (rssi > -Preferences.getIntance().getRssiLimitValue()) {
+            return COLOR_STRONG;
+        } else return COLOR_WEAK;
+
     }
 
     private void setDrawableAndStart(View view, DeviceLocation d) {
+        ImageView imageview = view.findViewById(R.id.img_background);
         if (d.getWifiDevice() != null && d.getWifiDevice().getType() != App.TYPE_DEVICE_WIFI) {
-            if (view.getBackground() != null && view.getBackground() instanceof Animatable) {
-                Animatable drawable = (Animatable) view.getBackground();
-                if (!drawable.isRunning())
-                    drawable.start();
-            } else {
-                Drawable drawable1 = mContext.getDrawable(R.drawable.animatied_vector_oval).mutate();
-                DrawableCompat.setTint(drawable1, getColorByRssi(d.getWifiDevice().getRssi()));
-                view.setBackground(drawable1);
-                Animatable drawable = (Animatable) drawable1;
+            if (imageview.getVisibility() == View.GONE)
+                imageview.setVisibility(View.VISIBLE);
+            Animatable drawable = (Animatable) imageview.getDrawable();
+            DrawableCompat.setTint(imageview.getDrawable(), getColorByRssi(d.getWifiDevice().getRssi()));
+            if (!drawable.isRunning())
                 drawable.start();
-            }
+
+//            if (view.getBackground() != null && view.getBackground() instanceof Animatable) {
+//                Animatable drawable = (Animatable) view.getBackground();
+//                if (!drawable.isRunning())
+//                    drawable.start();
+//            } else {
+//                Drawable drawable1 = mContext.getDrawable(R.drawable.animatied_vector_oval).mutate();
+//                DrawableCompat.setTint(drawable1, getColorByRssi(d.getWifiDevice().getRssi()));
+//                view.setBackground(drawable1);
+//                Animatable drawable = (Animatable) drawable1;
+//                drawable.start();
+//            }
         } else if (view.getBackground() != null) {
-            Animatable drawable = (Animatable) view.getBackground();
-            drawable.stop();
-            view.setBackground(null);
+
+            Animatable drawable = (Animatable) imageview.getDrawable();
+            if (drawable.isRunning())
+                drawable.stop();
+
+            if (imageview.getVisibility() != View.GONE)
+                imageview.setVisibility(View.GONE);
+
+//            Animatable drawable = (Animatable) view.getBackground();
+//            drawable.stop();
+//            view.setBackground(null);
         }
     }
 }

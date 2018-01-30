@@ -16,8 +16,6 @@ import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
 import com.changhong.wifiairscout.model.MessageData;
 import com.changhong.wifiairscout.model.MessageDataFactory;
-import com.changhong.wifiairscout.model.WifiDevice;
-import com.changhong.wifiairscout.model.response.BaseResponse;
 import com.changhong.wifiairscout.model.response.RegisterResponse;
 import com.changhong.wifiairscout.model.response.ScanNewResponse;
 import com.changhong.wifiairscout.preferences.Preferences;
@@ -53,7 +51,10 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
         setContentView(R.layout.layout_channel_condition);
 
         mToolBar = findViewById(R.id.toolbar);
-        mToolBar.setTitle(R.string.channel2_4);
+        if (App.sInstance.getCurWlanIdx() == 0)
+            mToolBar.setTitle(R.string.channel5_0);
+        else
+            mToolBar.setTitle(R.string.channel2_4);
         setSupportActionBar(mToolBar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -61,9 +62,6 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
 
         {
             mListView = findViewById(R.id.list_channelUsedCondetion);
-//            AppCompatTextView textView = new AppCompatTextView(this);
-//            textView.setText(R.string.no_data);
-//            mListView.setEmptyView(textView);
             mAdapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1, mArrayData);
             mListView.setAdapter(mAdapter);
         }

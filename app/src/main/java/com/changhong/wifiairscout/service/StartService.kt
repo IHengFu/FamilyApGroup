@@ -246,7 +246,7 @@ class StartService : Service() {
 
             val master = GetMasterResponse(param?.msgBody).master
             master.name = getString(R.string.wifi)
-            master.rssi = App.MIN_RSSI
+            master.rssi = App.MAX_RSSI
             master.type = App.TYPE_DEVICE_WIFI
             App.sInstance.curChannel = master.channel
             App.sInstance.curWlanIdx = master.wlan_idx

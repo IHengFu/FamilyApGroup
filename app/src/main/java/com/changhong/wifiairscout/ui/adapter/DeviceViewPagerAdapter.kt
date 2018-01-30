@@ -58,8 +58,9 @@ class DeviceViewPagerAdapter(val context: Context, val mList: List<WifiDevice>) 
 //            val drawable = container.resources.getDrawable(App.RESID_WIFI_DEVICE[mList.get(position).type.toInt()])
 //            imageView.setImageDrawable(CommUtils.tintDrawable(drawable, Color.RED))
 //        } else
-            imageView.setImageResource(App.RESID_WIFI_DEVICE[mList.get(position).type.toInt()])
-        view.findViewById<AppCompatTextView>(R.id.text).setText(mList.get(position).name)
+        imageView.setImageResource(App.RESID_WIFI_DEVICE[mList.get(position).type.toInt()])
+//        view.findViewById<AppCompatTextView>(R.id.text).setText(mList.get(position).name)
+        view.findViewById<AppCompatTextView>(R.id.text).setText(mList.get(position).mac.substring(12))
         container.addView(view)
 
         view.setTag(position)

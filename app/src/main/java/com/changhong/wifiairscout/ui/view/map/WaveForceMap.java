@@ -13,10 +13,12 @@ import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
 import com.changhong.wifiairscout.db.data.DeviceLocation;
+import com.changhong.wifiairscout.preferences.Preferences;
 import com.changhong.wifiairscout.utils.CommUtils;
 import com.changhong.wifiairscout.utils.UnitUtils;
 
@@ -48,6 +50,7 @@ public class WaveForceMap implements TypeMap {
     private Paint mPathPaint;
 
     private Rect mRectStrSkechMap;
+    private float[] mDistanceRate;
 
 
     public WaveForceMap(Context context, int size_child_text, float radius) {
@@ -64,9 +67,15 @@ public class WaveForceMap implements TypeMap {
         if (viewGroup.getChildCount() > 0)
             for (int i = 0; i < viewGroup.getChildCount(); i++) {
                 View view = viewGroup.getChildAt(i);
-                if (view.getBackground() != null)
-                    view.setBackground(null);
+                ImageView imageview = view.findViewById(R.id.img_background);
+                if (imageview.getVisibility() != View.GONE)
+                    imageview.setVisibility(View.GONE);
+//                if (view.getBackground() != null)
+//                    view.setBackground(null);
             }
+
+        mDistanceRate = getRateDistance();
+
         initForceWave(viewGroup, list, scale, scrollX, scrollY);
     }
 
@@ -104,7 +113,7 @@ public class WaveForceMap implements TypeMap {
         if (changed)
             mSketchMapDrawable.setBounds(mRectStrSkechMap.width() + 1 + UnitUtils.dip2px(mContext, 10),
                     b - t - UnitUtils.dip2px(mContext, 20),
-                    mRectStrSkechMap.width() + 1 + UnitUtils.dip2px(mContext, 110),
+                    mRectStrSkechMap.width() + 1 + UnitUtils.dip2px(mContext, 70),
                     b - t - UnitUtils.dip2px(mContext, 10));
     }
 
@@ -178,14 +187,14 @@ public class WaveForceMap implements TypeMap {
                 canvas.clipPath(path);
             }
 
-            for (int i = 0; i < ARR_DISTANCE_RATE.length; i++) {
+            for (int i = 0; i < mDistanceRate.length; i++) {
                 Path path = arrPath.get(i);
-                mPathPaint.setColor(COLOR_PATH_RANGE[i]);
+                mPathPaint.setColor(i == 0 ? COLOR_WEAK : COLOR_STRONG);
                 canvas.drawPath(path, mPathPaint);
             }
 
             mDrawableWave = new BitmapDrawable(mContext.getResources(), bitmap);
-            mDrawableWave.setBounds((int) -scrollX, (int) -scrollY,
+            mDrawableWave.setBounds(-scrollX, -scrollY,
                     (int) (viewGroup.getWidth() * scale - scrollX),
                     (int) (viewGroup.getHeight() * scale - scrollY));
 
@@ -201,12 +210,13 @@ public class WaveForceMap implements TypeMap {
         double R = getDistanceIn2Points(cX, cY, d.getX(), d.getY());
         double distance = CommUtils.dbm2Distance(d.getWifiDevice().getRssi());
 
-        ArrayList<Path> arrayList = new ArrayList<>(ARR_DISTANCE_RATE.length);
 
-        for (int i = 0; i < ARR_DISTANCE_RATE.length; i++) {
+        ArrayList<Path> arrayList = new ArrayList<>(mDistanceRate.length);
+
+        for (int i = 0; i < mDistanceRate.length; i++) {
             Path path = new Path();
 
-            double nR = R * ARR_DISTANCE_RATE[i] / distance;
+            double nR = R * mDistanceRate[i] / distance;
             path.addCircle(cX, cY, (float) nR, Path.Direction.CW);
             path.close();
 
@@ -228,7 +238,8 @@ public class WaveForceMap implements TypeMap {
         arrLocation = list.toArray(arrLocation);
         Arrays.sort(arrLocation);
         PointF[] tempSameValuePoints = new PointF[arrLocation.length];
-        for (float v : ARR_DISTANCE_RATE) {
+
+        for (float v : mDistanceRate) {
 
             //获取等高线的点
             for (int j = 0; j < arrLocation.length; ++j) {//收集最短半径和所有的点坐标
@@ -405,5 +416,14 @@ public class WaveForceMap implements TypeMap {
         mPathPaint.getTextBounds(mStrIntensity[0], 0, mStrIntensity[0].length(), mRectStrSkechMap);
     }
 
+    private float[] getRateDistance() {
+        float[] result = new float[2];
 
+        result[0] = (float) CommUtils.dbm2Distance(App.MIN_RSSI);
+        float rate = -Preferences.getIntance().getRssiLimitValue() - App.MIN_RSSI;
+        rate /= (App.MAX_RSSI - App.MIN_RSSI);
+        result[1] = (float) CommUtils.dbm2Distance((App.MIN_RSSI - App.MAX_RSSI) * (1 - rate) + App.MAX_RSSI);
+
+        return result;
+    }
 }

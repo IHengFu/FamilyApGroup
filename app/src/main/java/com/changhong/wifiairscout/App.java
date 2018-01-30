@@ -23,7 +23,7 @@ public class App extends Application {
 
     public static App sInstance;
 
-    public static boolean sTest = true;
+    public static final boolean sTest = false;
 
     private ExecutorService mThreadPool;
 

@@ -34,22 +34,8 @@ public class GetMasterResponse extends BaseResponse {
 
         int index = 0;
 
-        String name = null;
-        {
-            int first0 = 32;
-            for (int i = 0; i < 32; ++i)
-                if (data[offset + index + i] == 0) {
-                    first0 = i;
-                    break;
-                }
-            try {
-                name = new String(data, offset + index, first0, App.CHARSET).trim();
-            } catch (UnsupportedEncodingException e) {
-                name = new String(data, offset, first0);
-                e.printStackTrace();
-            }
-            index += 32;
-        }
+        String name = getStringInData(data, 0, 32);
+        index += 32;
 
 
         StringBuilder sb = new StringBuilder();
@@ -68,20 +54,10 @@ public class GetMasterResponse extends BaseResponse {
         wifidevice.setBound(data[index++]);
         wifidevice.setSideband(data[index++]);
 
-        try {
-            int first0 = 32;
-            for (int i = 0; i < 32; ++i)
-                if (data[index + i] == 0) {
-                    first0 = i;
-                    break;
-                }
-            wifidevice.setSsid(new String(data, index, first0, App.CHARSET).trim());
-        } catch (UnsupportedEncodingException e) {
-            wifidevice.setSsid(new String(data, index, 32).trim());
-            e.printStackTrace();
-        } finally {
-            index += 32;
-        }
+        wifidevice.setSsid(getStringInData(data, index, 32));
+        index += 32;
+
+
         wifidevice.setEncrypt(data[index++]);
         wifidevice.setCipher(data[index++]);
 

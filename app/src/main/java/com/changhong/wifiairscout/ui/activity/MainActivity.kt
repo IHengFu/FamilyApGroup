@@ -78,9 +78,10 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         }
 
         initViewPager()
-        resetHouseStructure()
+//        resetHouseStructure()
+        CommUtils.transparencyBar(this);
 
-        layout_apartment.setOnItemClickListener { adapterView, view1, i, l ->
+        layout_apartment.setOnItemClickListener { adapterView, view1, _, _ ->
             val intent = Intent(this@MainActivity, DeviceLocationDetailActivity::class.java)
             val location = view1.getTag() as DeviceLocation
             intent.putExtra(Intent.EXTRA_DATA_REMOVED, location.wifiDevice)
@@ -89,9 +90,8 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             startActivityForResult(intent, REQUEST_DEVICE_DETAIL)
         }
 
-        layout_apartment.setOnItemDragListener { view, index -> StartService.startService(this@MainActivity, StartService.ACTION_LOAD_DEVICE_STATUS) }
+//        layout_apartment.setOnItemDragListener { view, index -> StartService.startService(this@MainActivity, StartService.ACTION_LOAD_DEVICE_STATUS) }
 
-        CommUtils.transparencyBar(this);
 
         findViewById<View>(R.id.btn_start_scan).setOnClickListener(this)
         findViewById<View>(R.id.btn_optimization).setOnClickListener(this)
@@ -138,6 +138,26 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
     private fun doStartScan() {
 //        StartService.startService(this@MainActivity, StartService.ACTION_LOAD_DEVICE_STATUS)
+
+        if (App.sTest) {
+            for (device in mArrayDevices) {
+                if (device.type == App.TYPE_DEVICE_CLIENT) {
+                    device.rssi = (device.rssi + Math.random() * 10 - 5).toByte()
+                    if (device.rssi < App.MIN_RSSI)
+                        device.rssi = App.MIN_RSSI
+                    else if (device.rssi > App.MAX_RSSI)
+                        device.rssi = App.MAX_RSSI
+                } else if (device.rssi == App.TYPE_DEVICE_PHONE) {
+                    device.rssi = App.sInstance.wifiInfo.rssi.toByte()
+                }
+                layout_apartment.refresh()
+            }
+            val response = GetClientStatusResponse(ByteArray(2), mArrayDevices);
+
+            EventBus.getDefault().postSticky(response);
+            return
+        }
+
         mUdpTask = UDPTask().execute(MessageDataFactory.getAllClientStatus(), object : TaskListener<MessageData> {
             override fun getName(): String? {
                 return null
@@ -188,6 +208,25 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             }
             run {
                 val wifiinfo = App.sInstance.wifiInfo
+                val frequency = wifiinfo.frequency;
+
+                if (frequency < 5000) {
+                    App.sInstance.curWlanIdx = 1
+                    App.sInstance.curChannel = ((frequency - 2407) / 5).toByte()
+                    if ((frequency - 2407) % 5 > 3)
+                        App.sInstance.curChannel++;
+                } else {
+                    val arrFrequency = resources.getIntArray(R.array.channel_5g_cn_frequency)
+                    var min = Int.MAX_VALUE
+                    for (i in arrFrequency.indices) {
+                        if (Math.abs(frequency - arrFrequency[i]) < min) {
+                            min = Math.abs(frequency - arrFrequency[i])
+                            App.sInstance.curChannel = i.toByte()
+                        }
+                    }
+                    App.sInstance.curWlanIdx = 0
+                }
+
                 result.add(0, WifiDevice(App.TYPE_DEVICE_PHONE, WifiDevice.toStringIp(wifiinfo.ipAddress), wifiinfo.macAddress,
                         getString(R.string.my_phone), 0))
                 result.get(0).rssi = wifiinfo.rssi.toByte()
@@ -197,8 +236,9 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
                         wifiinfo.bssid, getString(R.string.wifi), 0))
                 result.get(0).rssi = 100.toByte()
 
-            }
 
+            }
+            result.forEach { it.channel = App.sInstance.curChannel }
 
             return result
         }
@@ -331,9 +371,9 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
                             }
                             layout_apartment.refresh()
                         }
-                        val response = GetClientStatusResponse(ByteArray(2), mArrayDevices);
+                        val response = GetClientStatusResponse(ByteArray(2), mArrayDevices)
 
-                        EventBus.getDefault().postSticky(response);
+                        EventBus.getDefault().postSticky(response)
                     } else {
                         StartService.startService(this@MainActivity, StartService.ACTION_LOAD_DEVICE_STATUS)
                     }

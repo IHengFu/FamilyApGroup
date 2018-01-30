@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<animated-vector
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:drawable="@drawable/vector_green">
 
     <target
-        android:name="oval"
-        android:animation="@animator/objanim_biger"/>
-
+        android:name="edge"
+        android:animation="@animator/objanim_color" />
+    <target
+        android:name="edge"
+        android:animation="@animator/objanim_oval_size" />
 </animated-vector>

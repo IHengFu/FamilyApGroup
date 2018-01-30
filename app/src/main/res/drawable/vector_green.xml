@@ -2,14 +2,13 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="80dp"
     android:height="80dp"
-    android:alpha="40"
     android:viewportHeight="80"
     android:viewportWidth="80">
     <path
-        android:name="oval"
+        android:name="edge"
+        android:fillColor="#5555ff55"
         android:pathData="M39,1 a38,39 0 1 0 1 0z"
-        android:fillColor="#55ff0000"
-        android:strokeColor="#ff0000"
+        android:strokeColor="#55ff55"
         android:strokeLineCap="round"
         android:strokeLineJoin="miter"
         android:strokeWidth="1" />
