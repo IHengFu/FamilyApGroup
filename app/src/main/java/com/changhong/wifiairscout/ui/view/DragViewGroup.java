@@ -191,6 +191,9 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
             mTypeMap.onAdd(this, child, location);
         }
 
+        if (mOnItemDragListener != null)
+            mOnItemDragListener.onAdd(device);
+
         refresh();
 
     }
@@ -321,12 +324,11 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
                     setChildLocation(dragged, x, y);
                     //将移动了的view 的值存入对象
                     mListDeviceInfo.get(dragged).setXY((x + mScrollX) / mScale, (y + mScrollY) / mScale);
+
                     hideDeleteView();
                     //重新定场强的样式
                     refresh();
-                    if (mOnItemDragListener != null) {
-                        mOnItemDragListener.onDrag(getChildAt(dragged), dragged);
-                    }
+
                     dragged = -1;
                     setDraggedRectShow(false);
                 }
@@ -650,6 +652,13 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
                 if (mTypeMap != null) {
                     mTypeMap.onRemove(view, obj);
                 }
+
+                if (mOnItemDragListener != null) {
+                    mOnItemDragListener.onDelete(obj.getWifiDevice());
+                }
+                return;
+            } else if (mOnItemDragListener != null) {
+                mOnItemDragListener.onDroped(getChildAt(dragged), mListDeviceInfo.get(dragged).getWifiDevice());
             }
             mDeleteTextView.setEnabled(true);
             mDeleteTextView.setVisibility(View.GONE);
@@ -672,6 +681,12 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         if (mTypeMap != null)
             mTypeMap.clean(this);
 
+        if (mListDeviceInfo != null && mOnItemDragListener != null)
+            for (DeviceLocation deviceLocation : mListDeviceInfo) {
+                if (deviceLocation.getWifiDevice() != null)
+                    mOnItemDragListener.onDelete(deviceLocation.getWifiDevice());
+            }
+
         if (mListDeviceInfo != null)
             mListDeviceInfo.clear();
 
@@ -691,8 +706,14 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
             if (mTypeMap != null) {
                 mTypeMap.onAdd(this, child, location);
             }
+
+            if (mOnItemDragListener != null)
+                if (location.getWifiDevice() != null)
+                    mOnItemDragListener.onDelete(location.getWifiDevice());
         }
+
         refresh();
+
     }
 
     public List<DeviceLocation> exportData() {

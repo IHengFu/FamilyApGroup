@@ -2,20 +2,17 @@ package com.changhong.wifiairscout.ui.adapter
 
 import android.content.Context
 import android.graphics.Color
-import android.graphics.drawable.Drawable
 import android.support.v4.graphics.drawable.DrawableCompat
 import android.support.v4.view.PagerAdapter
-import android.view.View
-import android.view.ViewGroup
 import android.support.v4.view.ViewPager
 import android.support.v7.widget.AppCompatImageView
 import android.support.v7.widget.AppCompatTextView
-import android.text.Layout
 import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import com.changhong.wifiairscout.App
 import com.changhong.wifiairscout.R
 import com.changhong.wifiairscout.model.WifiDevice
-import com.changhong.wifiairscout.utils.CommUtils
 
 
 /**
@@ -26,6 +23,10 @@ class DeviceViewPagerAdapter(val context: Context, val mList: List<WifiDevice>) 
 
 
     private val layoutInflater: LayoutInflater
+
+    private val mTempList = ArrayList<View>()
+
+    val mHashShown = HashMap<String, Boolean>()
 
     init {
         layoutInflater = LayoutInflater.from(context)
@@ -49,24 +50,26 @@ class DeviceViewPagerAdapter(val context: Context, val mList: List<WifiDevice>) 
     override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
         val view = `object` as View
         (container as ViewPager).removeView(view)
+
+        mTempList.remove(view)
     }
 
     override fun instantiateItem(container: ViewGroup, position: Int): Any? {
         val view = layoutInflater.inflate(R.layout.item_device1, null, false)
-        val imageView = view.findViewById<AppCompatImageView>(R.id.icon)
-//        if (mList.get(position).rssi < -84) {
-//            val drawable = container.resources.getDrawable(App.RESID_WIFI_DEVICE[mList.get(position).type.toInt()])
+//        if (item.rssi < -84) {
+//            val drawable = container.resources.getDrawable(App.RESID_WIFI_DEVICE[item.type.toInt()])
 //            imageView.setImageDrawable(CommUtils.tintDrawable(drawable, Color.RED))
 //        } else
-        imageView.setImageResource(App.RESID_WIFI_DEVICE[mList.get(position).type.toInt()])
-//        view.findViewById<AppCompatTextView>(R.id.text).setText(mList.get(position).name)
-        view.findViewById<AppCompatTextView>(R.id.text).setText(mList.get(position).mac.substring(12))
+        val item = mList.get(position)
+        refreshView(view, item)
         container.addView(view)
 
         view.setTag(position)
 
         view.setOnClickListener(this)
         view.setOnLongClickListener(this)
+
+        mTempList.add(view)
         return view
     }
 
@@ -93,5 +96,33 @@ class DeviceViewPagerAdapter(val context: Context, val mList: List<WifiDevice>) 
     fun setOnItemClickListener(itemClickListener: OnItemClickListener) {
         this.itemClickListener = itemClickListener
     }
+
+    fun isItemEnable(item: WifiDevice) =
+            mHashShown.containsKey(item.mac) && mHashShown.get(item.mac) ?: false
+
+    override fun notifyDataSetChanged() {
+        if (mTempList != null && !mTempList.isEmpty())
+            for (view in mTempList) {
+                refreshView(view, mList.get(view.getTag() as Int))
+            }
+
+        super.notifyDataSetChanged()
+    }
+
+    fun refreshView(view: View, item: WifiDevice) {
+        val imageView = view.findViewById<AppCompatImageView>(R.id.icon)
+        imageView.setImageResource(App.RESID_WIFI_DEVICE[item.type.toInt()])
+        if (isItemEnable(item)) {
+            DrawableCompat.setTint(imageView.drawable, Color.YELLOW)
+        } else {
+            DrawableCompat.setTint(imageView.drawable, Color.WHITE)
+        }
+
+        if (item.type == App.TYPE_DEVICE_CONNECT)
+            view.findViewById<AppCompatTextView>(R.id.text).setText(item.name)
+        else
+            view.findViewById<AppCompatTextView>(R.id.text).setText(item.mac.substring(12))
+    }
+
 }
 

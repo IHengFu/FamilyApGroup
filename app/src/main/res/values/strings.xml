@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">WifiAirScout</string>
-    <string name="copyright" translatable="false">Copyright changhong net.All rights reserved</string>
+    <string name="copyright" translatable="false">Sichuan Changhong Network Technologies Co., Ltd.</string>
     <string name="action_settings">Settings</string>
     <string name="action_save">Save</string>
     <string name="action_give_up">Give up</string>
@@ -85,4 +85,8 @@
     <string name="tab_name">Name</string>
     <string name="tab_mac" translatable="false">MAC</string>
     <string name="tab_cur_chn">Current Channel</string>
+    <string name="tab_translate_speed">Translate speed:</string>
+    <string name="action_test_speed">Click to test Speed</string>
+    <string name="notice_wait_for_test_speed">In test speed,please wait for a moument……</string>
+    <string name="notice_test_task_canceled">Test task has been canceled.</string>
 </resources>

@@ -90,7 +90,29 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             startActivityForResult(intent, REQUEST_DEVICE_DETAIL)
         }
 
-//        layout_apartment.setOnItemDragListener { view, index -> StartService.startService(this@MainActivity, StartService.ACTION_LOAD_DEVICE_STATUS) }
+//        layout_apartment.setOnItemDragListener { view, _ -> StartService.startService(this@MainActivity, StartService.ACTION_LOAD_DEVICE_STATUS) }
+        layout_apartment.setOnItemDragListener(object : OnItemDragListener {
+            override fun onAdd(device: WifiDevice?) {
+                deviceAdapter.mHashShown.put(device?.mac!!, true)
+                deviceAdapter.notifyDataSetChanged()
+            }
+
+            override fun onDelete(device: WifiDevice?) {
+                deviceAdapter.mHashShown.remove(device?.mac)
+                deviceAdapter.notifyDataSetChanged()
+            }
+
+            override fun onMove(view: View?, device: WifiDevice?) {
+            }
+
+            override fun onDroped(view: View?, device: WifiDevice?) {
+                if (device != null && device.type == App.TYPE_DEVICE_WIFI) {
+                    askForSaveProgramme()
+                }
+            }
+
+
+        })
 
 
         findViewById<View>(R.id.btn_start_scan).setOnClickListener(this)
@@ -230,6 +252,9 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
                 result.add(0, WifiDevice(App.TYPE_DEVICE_PHONE, WifiDevice.toStringIp(wifiinfo.ipAddress), wifiinfo.macAddress,
                         getString(R.string.my_phone), 0))
                 result.get(0).rssi = wifiinfo.rssi.toByte()
+
+                val wc = WifiDevice(App.TYPE_DEVICE_CONNECT, "127.00.00.1", "ff:ff:ff:ff:ff:ff", "中继器", App.sInstance.curChannel);
+                result.add(0, wc)
 
                 val dhcp = App.sInstance.dhcpInfo
                 result.add(0, WifiDevice(App.TYPE_DEVICE_WIFI, WifiDevice.toStringIp(dhcp.ipAddress),
@@ -375,7 +400,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
                         EventBus.getDefault().postSticky(response)
                     } else {
-                        StartService.startService(this@MainActivity, StartService.ACTION_LOAD_DEVICE_STATUS)
+                        StartService.startService(this@MainActivity, StartService.ACTION_LOAD_MASTER)
                     }
                 }
 
@@ -390,12 +415,23 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
     private fun initViewPager() {
         deviceAdapter.setOnItemClickListener(object : DeviceViewPagerAdapter.OnItemClickListener {
             override fun onItemClick(device: WifiDevice, position: Int) {
+                if (device.type == App.TYPE_DEVICE_CONNECT) {
+                    showToast("中继器功能敬请期待……")
+                    return
+                }
                 val intent = Intent(this@MainActivity, DeviceDetailActivity::class.java)
                 intent.putExtra(Intent.EXTRA_DATA_REMOVED, device)
                 startActivity(intent)
             }
 
             override fun onItemLongClick(view: View, device: WifiDevice, position: Int): Boolean {
+                if (device.type == App.TYPE_DEVICE_CONNECT) {
+                    showToast("中继器功能敬请期待……")
+                    return false
+                }
+                if (deviceAdapter.isItemEnable(device))
+                    return false;
+
                 viewPager.onLongPress(view, device)
                 return true
             }
@@ -409,7 +445,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
                 layout_apartment.postInvalidate()
             }
 
-            override fun onDrop(t: WifiDevice?, x: Int, y: Int) {
+            override fun onDrop(t: WifiDevice?, view: View?, x: Int, y: Int) {
                 System.err.println("ondropd[${t.toString()}],($x,$y)")
                 layout_apartment.setDraggedRectShow(false)
                 layout_apartment.addDevice(t, x, y)

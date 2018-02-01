@@ -178,7 +178,7 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
         float minWeight = Float.MAX_VALUE;
         float temp;
         for (int i = 0; i < num_channel.length; ++i) {
-            mArrayData.add(String.format(getString(R.string.formatChannalUsageCondition), i + 1, num_channel[i]));
+            mArrayData.add(String.format(getString(R.string.formatChannalUsageCondition), NUMBER_OF_CHANNEL[i], num_channel[i]));
             temp = num_channel[i];
             if (i > 0)
                 temp += 0.3f * num_channel[i - 1];

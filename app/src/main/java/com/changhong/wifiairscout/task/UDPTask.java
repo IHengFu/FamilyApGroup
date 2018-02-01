@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.SocketTimeoutException;
 import java.net.UnknownHostException;
 import java.util.concurrent.TimeoutException;
 
@@ -98,6 +99,10 @@ public class UDPTask extends GenericTask implements MyCountDownTimerListener {
             e.printStackTrace();
             setException(e);
             return TaskResult.FAILED;
+        } catch (SocketTimeoutException e) {
+            e.printStackTrace();
+            setException(new SocketTimeoutException("通信超时"));
+            return TaskResult.IO_ERROR;
         } catch (IOException e) {
             e.printStackTrace();
             setException(e);
@@ -106,7 +111,7 @@ public class UDPTask extends GenericTask implements MyCountDownTimerListener {
             e.printStackTrace();
             setException(e);
             return TaskResult.FAILED;
-        }catch (TimeoutException e){
+        } catch (TimeoutException e) {
             e.printStackTrace();
             setException(e);
             return TaskResult.IO_ERROR;

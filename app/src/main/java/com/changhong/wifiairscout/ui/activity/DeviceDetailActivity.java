@@ -1,6 +1,7 @@
 package com.changhong.wifiairscout.ui.activity;
 
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -16,8 +17,15 @@ import android.widget.TextView;
 
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
+import com.changhong.wifiairscout.model.MessageData;
+import com.changhong.wifiairscout.model.MessageDataFactory;
 import com.changhong.wifiairscout.model.WifiDevice;
 import com.changhong.wifiairscout.model.response.GetClientStatusResponse;
+import com.changhong.wifiairscout.model.response.GetTranslateSpeedResponse;
+import com.changhong.wifiairscout.task.GenericTask;
+import com.changhong.wifiairscout.task.TaskListener;
+import com.changhong.wifiairscout.task.TaskResult;
+import com.changhong.wifiairscout.task.UDPTask;
 import com.changhong.wifiairscout.ui.view.ArcView;
 import com.changhong.wifiairscout.ui.view.SignalView;
 import com.changhong.wifiairscout.utils.CommUtils;
@@ -32,7 +40,7 @@ import java.util.List;
  * Created by fuheng on 2017/12/12.
  */
 
-public class DeviceDetailActivity extends AppCompatActivity {
+public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickListener, TaskListener<MessageData> {
     protected EditText mTvDeviceName;
     protected TextView mTvMac;
     private TextView mTvCurChannal;
@@ -40,6 +48,9 @@ public class DeviceDetailActivity extends AppCompatActivity {
     protected WifiDevice device;
     private ArcView signalView;
     private SignalView mAnimSignalView;
+    private TextView mBtnSpeed;
+
+    private GenericTask mTask;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -68,6 +79,9 @@ public class DeviceDetailActivity extends AppCompatActivity {
         signalView = findViewById(R.id.signal_view);
 
         mAnimSignalView = findViewById(R.id.view_anim_signal);
+
+        mBtnSpeed = findViewById(R.id.btn_speed);
+        mBtnSpeed.setOnClickListener(this);
     }
 
     protected void setEditTextDeable() {
@@ -83,6 +97,8 @@ public class DeviceDetailActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        if (mTask != null)
+            mTask.cancle();
         EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
@@ -127,11 +143,14 @@ public class DeviceDetailActivity extends AppCompatActivity {
             if (device.getType() == App.TYPE_DEVICE_WIFI) {
                 signalView.setDisplayString(getString(R.string.tab_cur_signal), "∞", App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
                 signalView.setProgress(100);
+                ((View) mBtnSpeed.getParent()).setVisibility(View.GONE);
+
             } else {
                 signalView.setDisplayString(getString(R.string.tab_cur_signal), String.valueOf(device.getRssi()), App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
                 float rate = getRate();
                 signalView.setProgress((int) rate * 100);
                 mAnimSignalView.setColor(getSignalColor(rate));
+                ((View) mBtnSpeed.getParent()).setVisibility(View.VISIBLE);
             }
         } else {
             mTvIP.setText(null);
@@ -142,6 +161,7 @@ public class DeviceDetailActivity extends AppCompatActivity {
             mAnimSignalView.setVisibility(View.INVISIBLE);
             signalView.setDisplayString(getString(R.string.tab_cur_signal), "-∞", App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
             mAnimSignalView.setColor(Color.DKGRAY);
+            ((View) mBtnSpeed.getParent()).setVisibility(View.GONE);
         }
 
     }
@@ -158,4 +178,52 @@ public class DeviceDetailActivity extends AppCompatActivity {
         return rate;
     }
 
+    @Override
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.btn_speed:
+                doTestSpeed();
+                break;
+        }
+    }
+
+    private void doTestSpeed() {
+        mTask = new UDPTask().execute(MessageDataFactory.getTranslateSpeed(device.getMac()), this);
+    }
+
+    @Override
+    public String getName() {
+        return null;
+    }
+
+    @Override
+    public void onPreExecute(GenericTask task) {
+        showProgressDialog(getString(R.string.notice_wait_for_test_speed), true, new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialogInterface) {
+                mTask.cancle();
+            }
+        });
+    }
+
+    @Override
+    public void onPostExecute(GenericTask task, TaskResult result) {
+        hideProgressDialog();
+        mTask = null;
+        if (result != TaskResult.OK) {
+            showToast(task.getException().getMessage());
+        }
+    }
+
+    @Override
+    public void onProgressUpdate(GenericTask task, MessageData param) {
+        mBtnSpeed.setText(new GetTranslateSpeedResponse(param.getMsgBody()).getmListRate().get(0).getRateString());
+    }
+
+    @Override
+    public void onCancelled(GenericTask task) {
+        hideProgressDialog();
+        showToast(getString(R.string.notice_test_task_canceled));
+        mTask = null;
+    }
 }

@@ -12,6 +12,7 @@ import com.changhong.wifiairscout.App
 import com.changhong.wifiairscout.R
 import com.changhong.wifiairscout.model.MessageData
 import com.changhong.wifiairscout.model.MessageDataFactory
+import com.changhong.wifiairscout.model.WifiDevice
 import com.changhong.wifiairscout.model.response.*
 import com.changhong.wifiairscout.task.GenericTask
 import com.changhong.wifiairscout.task.TaskListener
@@ -81,12 +82,6 @@ class StartService : Service() {
         arrTask.forEach { it.cancle() }
         super.onDestroy()
     }
-
-//    private fun loadCurrentChannel() {
-//        val msg = MessageDataFactory.getChannel()
-//
-//        UDPTask().execute(msg, mGetChannelListener)
-//    }
 
     private fun startConnectMaster() {
         val msg = MessageDataFactory.getRegisterMessage()
@@ -200,6 +195,10 @@ class StartService : Service() {
 //                    device.type = App.TYPE_DEVICE_PHONE
 //                } else
                 device.type = App.TYPE_DEVICE_CLIENT
+
+
+            val wc = WifiDevice(App.TYPE_DEVICE_CONNECT, "127.00.00.1", "ff:ff:ff:ff:ff:ff", "中继器", App.sInstance.curChannel);
+            gcr.devices.add(0, wc)
 
             EventBus.getDefault().postSticky(gcr)
 

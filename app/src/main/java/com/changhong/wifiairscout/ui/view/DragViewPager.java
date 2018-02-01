@@ -18,7 +18,7 @@ import android.widget.ImageView;
  * Created by fuheng on 2017/12/20.
  */
 
-public class DragViewPager<T> extends ViewPager implements View.OnLongClickListener{
+public class DragViewPager<T> extends ViewPager implements View.OnLongClickListener {
     /**
      * 是否正在拖拽
      */
@@ -94,7 +94,7 @@ public class DragViewPager<T> extends ViewPager implements View.OnLongClickListe
 
         if (mDragView != null) {
             if (mDropListener != null) {
-                mDropListener.onDrop(mInfo,
+                mDropListener.onDrop(mInfo, mDragView,
                         Math.round(mWindowParams.x + mDragView.getWidth() / 2), Math.round(mWindowParams.y + mDragView.getHeight() / 2));
             }
             mDragView.setVisibility(GONE);
@@ -135,8 +135,8 @@ public class DragViewPager<T> extends ViewPager implements View.OnLongClickListe
 //            item.getLocationInWindow(location); //获取在当前窗口内的绝对坐标
             int[] location = new int[2];
             item.getLocationOnScreen(location);//获取在整个屏幕内的绝对坐标
-            System.out.println("view--->x坐标:" + location[0] + "view--->y坐标:" + location[1]);
-            System.out.println("item--->x坐标:" + item.getLeft() + "view--->y坐标:" + item.getTop());
+//            System.out.println("view--->x坐标:" + location[0] + "view--->y坐标:" + location[1]);
+//            System.out.println("item--->x坐标:" + item.getLeft() + "view--->y坐标:" + item.getTop());
             mWindowParams.x = location[0] - item.getWidth() / 2;
             mWindowParams.y = location[1] - item.getHeight() / 2;
 
@@ -183,7 +183,7 @@ public class DragViewPager<T> extends ViewPager implements View.OnLongClickListe
     }
 
     public interface OnDragDropListener<T> {
-        void onDrop(T t, int x, int y);
+        void onDrop(T t, View view, int x, int y);
 
         void onStartDrag();
     }

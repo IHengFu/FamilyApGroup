@@ -2,13 +2,14 @@ package com.changhong.wifiairscout.model
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.changhong.wifiairscout.App
 import java.util.*
 
 /**
  * Created by fuheng on 2017/12/8.
  */
 class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: String?, var channel: Byte = -1) : Parcelable {
-    var rssi: Byte = 0
+    var rssi: Byte = App.MIN_RSSI
     var cipher: Byte = -1//1:tkip; 2:aes; 3:mixed
 
     var dual_band: Byte = 0//	1	1:双频; 0:单频

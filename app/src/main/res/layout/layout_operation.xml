@@ -51,7 +51,7 @@
                 <android.support.v7.widget.AppCompatTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=" - "
+                    android:text=" -"
                     android:textSize="16sp" />
 
                 <EditText
@@ -60,6 +60,7 @@
                     android:layout_height="wrap_content"
                     android:inputType="number"
                     android:maxLines="1"
+                    android:singleLine="true"
                     android:textColorHint="@android:color/darker_gray"
                     android:textSize="16sp" />
 

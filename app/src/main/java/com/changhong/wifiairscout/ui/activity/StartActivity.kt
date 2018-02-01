@@ -27,6 +27,7 @@ import com.changhong.wifiairscout.task.GenericTask
 import com.changhong.wifiairscout.task.TaskListener
 import com.changhong.wifiairscout.task.TaskResult
 import com.changhong.wifiairscout.task.UDPTask
+import com.changhong.wifiairscout.ui.view.DefaultInputDialog
 import com.changhong.wifiairscout.utils.CommUtils
 
 
@@ -84,30 +85,6 @@ class StartActivity : AppCompatActivity() {
 
     }
 
-    private fun startLoadDevice() {
-        val msg = MessageDataFactory.getAllClientInfo()
-
-        if (mUdpTask?.isCancelled == false)
-            mUdpTask?.cancle()
-        mUdpTask = UDPTask().execute(msg, mLoadDeviceListener)
-
-    }
-
-    private fun startLoadDeviceStatus() {
-        val msg = MessageDataFactory.getAllClientStatus()
-
-        if (mUdpTask?.isCancelled == false)
-            mUdpTask?.cancle()
-        mUdpTask = UDPTask().execute(msg, mLoadDeviceStatusListener)
-    }
-
-    private fun startLoadMaster() {
-        val msg = MessageDataFactory.getMasterInfo(App.sInstance.masterMac)
-
-        if (mUdpTask?.isCancelled == false)
-            mUdpTask?.cancle()
-        mUdpTask = UDPTask().execute(msg, mLoadMasterListener)
-    }
 
     fun showAlertDialog() {
         var dialog = AlertDialog.Builder(this@StartActivity).setMessage(R.string.cannot_connect_master).setPositiveButton(R.string.action_exit) { dialogInterface, _ ->
@@ -155,9 +132,15 @@ class StartActivity : AppCompatActivity() {
     }
 
     fun goNext() {
-        val intent = Intent(this@StartActivity, MainActivity::class.java)
-        startActivity(intent)
-        finish()
+        val dialog = DefaultInputDialog(this)
+        dialog.setTitle("请输入当前用户名称")
+        dialog.setOnCommitListener { dialoginterface, string, var3 ->
+            val intent = Intent(this@StartActivity, MainActivity::class.java)
+            startActivity(intent)
+            dialoginterface.dismiss()
+            finish()
+        }
+        dialog.show()
     }
 
 
@@ -203,117 +186,6 @@ class StartActivity : AppCompatActivity() {
                     App.sInstance.curWlanIdx = 1
                 App.sInstance.curChannel = rr.getCurrentWlanIdx(App.sInstance.curWlanIdx)
 //            startLoadDevice()
-            }
-        }
-    }
-
-    private val mLoadDeviceListener by lazy {
-        object : UDPTaskListner(getString(R.string.notice_get_device)) {
-
-            override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
-
-                val gcr = GetClientResponse(param?.msgBody)
-                arrayDevice = gcr.devices
-
-            }
-
-            override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
-                if (result == TaskResult.OK) {
-                    startLoadMaster()
-                    return
-                }
-
-                if (task?.exception != null)
-                    Toast.makeText(this@StartActivity, task.exception?.message ?: task.exception?.javaClass?.simpleName, Toast.LENGTH_SHORT).show()
-                showRetryDialog(DialogInterface.OnClickListener { p0, _ ->
-                    p0?.dismiss()
-                    startLoadDeviceStatus()
-                })
-
-                alertDialog?.show()
-            }
-        }
-    }
-
-    private val mLoadDeviceStatusListener by lazy {
-        object : UDPTaskListner(getString(R.string.notice_get_device_status)) {
-
-            override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
-                Log.e(this@StartActivity.javaClass.simpleName, "task end " + result)
-                if (result == TaskResult.OK)
-                    return
-
-                if (task?.exception != null)
-                    Toast.makeText(this@StartActivity, task.exception?.message ?: task.exception?.javaClass?.simpleName, Toast.LENGTH_SHORT).show()
-                showRetryDialog(DialogInterface.OnClickListener { p0, _ ->
-                    p0?.dismiss()
-                    startLoadDeviceStatus()
-                })
-
-                alertDialog?.show()
-            }
-
-            override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
-
-                val gcsr = GetClientStatusResponse(param?.msgBody)
-
-                var arrayStatus = gcsr.devices
-                //嵌入信号强度
-                if (arrayStatus != null)
-                    for (wifiDevice in arrayStatus) {
-                        arrayDevice?.forEach { it ->
-                            if (wifiDevice.mac.equals(it.mac)) {
-                                it.rssi = wifiDevice.rssi
-                            }
-                        }
-                    }
-
-                val localMac = App.sInstance.wifiInfo.macAddress;
-                for (device in arrayStatus)
-                    if (localMac.equals(device.mac)) {
-                        device.name = getString(R.string.my_phone)
-                        device.type = App.TYPE_DEVICE_PHONE
-                    } else {
-                        device.type = App.TYPE_DEVICE_CLIENT
-                        device.rssi = (device.rssi - 100).toByte()
-                    }
-
-                goNext()
-            }
-
-        }
-    }
-
-    private val mLoadMasterListener by lazy {
-        object : UDPTaskListner(getString(R.string.notice_get_master)) {
-
-            override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
-                if (result == TaskResult.OK) {
-                    startLoadDeviceStatus()
-                    return
-                }
-
-                if (task?.exception != null)
-                    Toast.makeText(this@StartActivity, task.exception?.message ?: task.exception?.javaClass?.simpleName, Toast.LENGTH_SHORT).show()
-                showRetryDialog(DialogInterface.OnClickListener { p0, _ ->
-                    p0?.dismiss()
-                    startLoadDeviceStatus()
-                })
-
-                alertDialog?.show()
-            }
-
-            override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
-
-                Log.e(javaClass.simpleName, CommUtils.toHexString(param?.msgBody))
-                val master = GetMasterResponse(param?.msgBody).master
-
-                arrayDevice?.add(master!!)
-            }
-
-            override fun onCancelled(task: GenericTask?) {
-                if (task?.exception != null)
-                    Toast.makeText(this@StartActivity, task.exception?.message, Toast.LENGTH_SHORT).show()
             }
         }
     }

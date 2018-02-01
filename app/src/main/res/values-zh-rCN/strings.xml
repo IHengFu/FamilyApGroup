@@ -36,7 +36,7 @@
     <!--mainactivity-->
     <string name="title_intensity_map">场强图</string>
     <string name="action_optimize">优化</string>
-    <string name="action_channel_set">通道手动设置</string>
+    <string name="action_channel_set">信道手动设置</string>
     <string name="notice_wait_for_develop">待开发</string>
     <string name="title_device_list">设备列表</string>
     <string name="notice_download_data">数据加载中，请稍后……</string>
@@ -81,4 +81,8 @@
     <string name="tab_cur_signal">当前信号</string>
     <string name="tab_name">名称</string>
     <string name="tab_cur_chn">当前信道</string>
+    <string name="tab_translate_speed">传输速度:</string>
+    <string name="action_test_speed">点击测速</string>
+    <string name="notice_wait_for_test_speed">正在测试传输速度，请稍后……</string>
+    <string name="notice_test_task_canceled">测速被取消.</string>
 </resources>

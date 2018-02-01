@@ -10,6 +10,7 @@ import java.util.List;
 
 public class GetTranslateSpeedResponse extends BaseResponse {
 
+
     private List<DeviceRate> mListRate;
 
     public GetTranslateSpeedResponse(short status) {
@@ -33,6 +34,14 @@ public class GetTranslateSpeedResponse extends BaseResponse {
         for (int i = 0, index = 3; i < amount; i++, index += 10) {
             mListRate.add(getDeviceRate(data, index));
         }
+    }
+
+    public List<DeviceRate> getmListRate() {
+        return mListRate;
+    }
+
+    public void setmListRate(List<DeviceRate> mListRate) {
+        this.mListRate = mListRate;
     }
 
     private DeviceRate getDeviceRate(byte[] data, int offset) {

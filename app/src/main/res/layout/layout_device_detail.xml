@@ -95,7 +95,6 @@
                 android:id="@+id/tv_mac"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ems="9"
                 android:textColor="@android:color/black" />
         </TableRow>
 
@@ -115,7 +114,27 @@
                 android:id="@+id/tv_current_channel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:ems="9"
+                android:textColor="@android:color/black" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:text="@string/tab_translate_speed"
+                android:textColor="@android:color/black" />
+
+            <Button
+                android:id="@+id/btn_speed"
+                style="?android:attr/buttonBarButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/action_test_speed"
                 android:textColor="@android:color/black" />
         </TableRow>
     </TableLayout>

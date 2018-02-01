@@ -73,7 +73,8 @@ public class App extends Application {
     public static final byte TYPE_DEVICE_WIFI = 0;
     public static final byte TYPE_DEVICE_PHONE = 1;
     public static final byte TYPE_DEVICE_CLIENT = 2;
-    public static final int[] RESID_WIFI_DEVICE = {R.mipmap.ic_wifi_nor, R.mipmap.ic_phone_nor, R.mipmap.ic_client_nor};
+    public static final byte TYPE_DEVICE_CONNECT = 3;
+    public static final int[] RESID_WIFI_DEVICE = {R.mipmap.ic_wifi_nor, R.mipmap.ic_phone_nor, R.mipmap.ic_client_nor, R.drawable.ic_network_check_black_24dp};
 
     //默认编码
     public static final String CHARSET = "utf-8";
