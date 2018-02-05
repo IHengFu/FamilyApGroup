@@ -178,7 +178,10 @@ class StartService : Service() {
         override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
 
             val gcr = GetClientResponse(param?.msgBody)
-
+            if (gcr.devices == null || gcr.devices.size == 1) {
+                EventBus.getDefault().postSticky(gcr)
+                return
+            }
             val localMac = App.sInstance.wifiInfo.macAddress
             var index = -1
             for (i in 0 until gcr.devices.size)
@@ -188,16 +191,18 @@ class StartService : Service() {
             if (index != -1)
                 gcr.devices.removeAt(index)
 
-            for (device in gcr.devices)
-            //TODO
+            for (device in gcr.devices) {
+                //TODO
 //                if (localMac.equals(device.mac)) {
 //                    device.name = getString(R.string.my_phone)
 //                    device.type = App.TYPE_DEVICE_PHONE
 //                } else
                 device.type = App.TYPE_DEVICE_CLIENT
+                device.channel = App.sInstance.wlanIndexObject[device.wlan_idx.toInt()].channel
+            }
 
 
-            val wc = WifiDevice(App.TYPE_DEVICE_CONNECT, "127.00.00.1", "ff:ff:ff:ff:ff:ff", "中继器", App.sInstance.curChannel);
+            val wc = WifiDevice(App.TYPE_DEVICE_CONNECT, "127.00.00.1", "ff:ff:ff:ff:ff:ff", "中继器", App.sInstance.curChannel)
             gcr.devices.add(0, wc)
 
             EventBus.getDefault().postSticky(gcr)
@@ -253,22 +258,6 @@ class StartService : Service() {
 
         }
     }
-
-//    private val mGetChannelListener = object : UDPTaskListner("获取当前信道……", 3, 500) {
-//
-//        override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
-//            if (result != TaskResult.OK)
-//                retry(Runnable { startLoadMaster() })
-//            super.onPostExecute(task, result)
-//        }
-//
-//        override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
-//
-//            val getChannelResponse = GetChannelResponse(param?.msgBody)
-//            EventBus.getDefault().postSticky(getChannelResponse)
-//
-//        }
-//    }
 
     fun closeSelf() {
         if (arrTask.isEmpty()) {

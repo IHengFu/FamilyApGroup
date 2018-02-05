@@ -7,9 +7,11 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatDelegate;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import com.changhong.wifiairscout.model.response.RegisterResponse;
 import com.changhong.wifiairscout.preferences.Preferences;
 
 /**
@@ -23,9 +25,13 @@ public class App extends Application {
 
     public static App sInstance;
 
-    public static final boolean sTest = false;
+    public static final boolean sTest = true;
+
+    private String guestName;
 
     private ExecutorService mThreadPool;
+
+    private List<RegisterResponse.WlanIndexObject> wlanIndexObject;
 
     /**
      * 路由器mac地址
@@ -120,5 +126,21 @@ public class App extends Application {
 
     public void setMasterMac(String masterMac) {
         this.masterMac = masterMac;
+    }
+
+    public String getGuestName() {
+        return guestName;
+    }
+
+    public void setGuestName(String guestName) {
+        this.guestName = guestName;
+    }
+
+    public List<RegisterResponse.WlanIndexObject> getWlanIndexObject() {
+        return wlanIndexObject;
+    }
+
+    public void setWlanIndexObject(List<RegisterResponse.WlanIndexObject> wlanIndexObject) {
+        this.wlanIndexObject = wlanIndexObject;
     }
 }

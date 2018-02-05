@@ -20,7 +20,7 @@
 
         <TextView
             android:id="@+id/tv_tab"
-            style="?android:attr/textAppearanceLarge"
+            style="?android:attr/textAppearanceMedium"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:visibility="gone" />
@@ -29,8 +29,10 @@
             android:id="@+id/et_input"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:imeOptions="actionDone"
             android:maxLength="20"
-            android:maxLines="1" />
+            android:maxLines="1"
+            android:singleLine="true" />
     </LinearLayout>
 
     <LinearLayout

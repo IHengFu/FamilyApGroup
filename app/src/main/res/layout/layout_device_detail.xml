@@ -55,8 +55,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
+                android:imeOptions="actionDone"
                 android:maxLength="20"
                 android:maxLines="1"
+                android:nextFocusDown="@id/btn_speed"
+                android:singleLine="true"
                 android:textColorHint="@color/text_click_color" />
         </TableRow>
 

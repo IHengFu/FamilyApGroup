@@ -7,20 +7,16 @@ import android.os.Bundle
 import android.os.Handler
 import android.support.v7.app.AlertDialog
 import android.support.v7.app.AppCompatActivity
-import android.util.Log
-import android.view.View
+import android.text.TextUtils
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import com.changhong.wifiairscout.App
-
 import com.changhong.wifiairscout.R
+import com.changhong.wifiairscout.db.dao.ProgrammeDao
 import com.changhong.wifiairscout.model.MessageData
 import com.changhong.wifiairscout.model.MessageDataFactory
 import com.changhong.wifiairscout.model.WifiDevice
-import com.changhong.wifiairscout.model.response.GetClientResponse
-import com.changhong.wifiairscout.model.response.GetClientStatusResponse
-import com.changhong.wifiairscout.model.response.GetMasterResponse
 import com.changhong.wifiairscout.model.response.RegisterResponse
 import com.changhong.wifiairscout.preferences.Preferences
 import com.changhong.wifiairscout.task.GenericTask
@@ -28,6 +24,7 @@ import com.changhong.wifiairscout.task.TaskListener
 import com.changhong.wifiairscout.task.TaskResult
 import com.changhong.wifiairscout.task.UDPTask
 import com.changhong.wifiairscout.ui.view.DefaultInputDialog
+import com.changhong.wifiairscout.ui.view.UserControlDialog
 import com.changhong.wifiairscout.utils.CommUtils
 
 
@@ -35,7 +32,7 @@ import com.changhong.wifiairscout.utils.CommUtils
  * Created by fuheng on 2017/12/14.
  */
 
-class StartActivity : AppCompatActivity() {
+class StartActivity : BaseActivtiy() {
 
     private val tv_status: TextView by lazy { findViewById<TextView>(R.id.tv_status) }
 
@@ -132,14 +129,31 @@ class StartActivity : AppCompatActivity() {
     }
 
     fun goNext() {
-        val dialog = DefaultInputDialog(this)
+        val dialog = UserControlDialog(this)
         dialog.setTitle("请输入当前用户名称")
         dialog.setOnCommitListener { dialoginterface, string, var3 ->
+            if (TextUtils.isEmpty(string)) {
+                showToast(getString(R.string.no_data))
+                return@setOnCommitListener
+            }
+
+            App.sInstance.guestName = string
+
             val intent = Intent(this@StartActivity, MainActivity::class.java)
             startActivity(intent)
             dialoginterface.dismiss()
             finish()
         }
+
+        run {
+            val pDao = ProgrammeDao(this)
+            val num = pDao.rowNums
+            val usernames = pDao.userNames
+            dialog.setChoices(usernames)
+        }
+
+        dialog.setCancelable(false)
+//        dialog.setOnCancelListener({ dialogInterface -> finish() })
         dialog.show()
     }
 
@@ -177,6 +191,9 @@ class StartActivity : AppCompatActivity() {
 
             override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
                 val rr = RegisterResponse(param?.msgBody)
+
+                App.sInstance.wlanIndexObject = rr.wlanCondition
+
                 Preferences.getIntance().setMaxMsgBody(rr.max_msg_body_len)
                 Preferences.getIntance().setKeepAliveInterval(rr.keepalive_interval)
                 App.sInstance.masterMac = param?.macString

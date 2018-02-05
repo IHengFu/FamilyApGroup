@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="18dp"
+    android:height="12dp"
+    android:viewportHeight="12"
+    android:viewportWidth="18">
+    <path
+        android:pathData="M1,0l16,0,l0,12l-16,0z"
+        android:strokeColor="#65cdbd"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="miter"
+        android:strokeWidth=".2" />
+
+    <path
+        android:name="edge"
+        android:pathData="M8,2l-5,0l0,3c5,0 6,5 0,5 M15,4q-1,-2 -3,-2c-5,0 -5,8 0,8q3,0 3,-3l-3,0l0,1"
+        android:strokeColor="#65cdbd"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="miter"
+        android:strokeWidth=".5" />
+</vector>

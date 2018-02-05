@@ -296,8 +296,16 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         StartService.startService(this, StartService.ACTION_LOAD_MASTER)
         StartService.startService(this, StartService.ACTION_LOAD_DEVICE_STATUS)
 
+        //clean client
+        val listToDelete = ArrayList<WifiDevice>();
+        mArrayDevices.forEach { device ->
+            if (device.type == App.TYPE_DEVICE_CLIENT)
+                listToDelete.add(device)
+        }
+        mArrayDevices.removeAll(listToDelete)
+
+        // check and add new
         if (event.devices == null || event.devices.isEmpty()) {
-            mArrayDevices.clear()
             deviceAdapter.notifyDataSetChanged()
             return
         }
@@ -475,20 +483,22 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             return
         }
         val pDao = ProgrammeDao(this)
-        if (pDao.rowNums >= App.MAX_NUM_PROGRAMME) {
+        val allrecodes = pDao.queryByUserName(App.sInstance.guestName)
+        val recodesNums = allrecodes?.size ?: 0
+        if (recodesNums >= App.MAX_NUM_PROGRAMME) {
             showToast(getString(R.string.notice_programme_max_limit))
             return
         }
 
         val dialog = DefaultInputDialog(this)
         dialog.setTitle(R.string.action_save_programme)
+        dialog.setTab(App.sInstance.guestName + ":")
         dialog.setOnCommitListener { dialogInstance, msg, var3 ->
             if (TextUtils.isEmpty(msg)) {
                 return@setOnCommitListener
             }
 
-
-            val recode = pDao.queryByName(msg)
+            val recode = pDao.query(App.sInstance.guestName, msg)
             if (recode != null && !recode.isEmpty()) {
                 showToast(getString(R.string.notice_containe_same_name))
                 return@setOnCommitListener
@@ -514,7 +524,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             if (count != 0)
                 avageRssi = (sum / count).toByte();
 
-            val programme = ProgrammeGroup(0, msg, groupId, avageRssi)
+            val programme = ProgrammeGroup(0, msg, groupId, avageRssi, App.sInstance.guestName)
             pDao.add(programme)
             dialogInstance.dismiss()
         }
@@ -523,7 +533,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
     private fun askForLoadProgramme() {
         val pDao = ProgrammeDao(this)
-        val all = pDao.all
+        val all = pDao.queryByUserName(App.sInstance.guestName)
         if (all == null || all.isEmpty()) {
             showToast(getString(R.string.no_data))
             return
@@ -534,7 +544,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         }
         var choice = -1
         AlertDialog.Builder(this)
-                .setTitle("${getString(R.string.action_load_programme)} (${items.size})")
+                .setTitle("${getString(R.string.action_load_programme)} (${App.sInstance.guestName}:${items.size})")
                 .setSingleChoiceItems(items, -1, { dialogInterface, i -> choice = i })
                 .setPositiveButton(R.string.action_cancel, null)
                 .setNegativeButton(R.string.action_load, { dialogInterface, i ->

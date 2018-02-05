@@ -45,12 +45,12 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
     protected TextView mTvMac;
     private TextView mTvCurChannal;
     private TextView mTvIP;
-    protected WifiDevice device;
     private ArcView signalView;
     private SignalView mAnimSignalView;
     private TextView mBtnSpeed;
 
     private GenericTask mTask;
+    protected WifiDevice device;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -152,8 +152,12 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
                 mAnimSignalView.setColor(getSignalColor(rate));
                 ((View) mBtnSpeed.getParent()).setVisibility(View.VISIBLE);
             }
+
+            if (device != null && device.getWlan_idx() == 0)
+                getSupportActionBar().setIcon(R.drawable.vector_5g);
+            else
+                getSupportActionBar().setIcon(0);
         } else {
-            mTvIP.setText(null);
             mTvIP.setText(null);
             mTvMac.setText(null);
             mTvCurChannal.setText(null);
@@ -162,6 +166,8 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
             signalView.setDisplayString(getString(R.string.tab_cur_signal), "-∞", App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
             mAnimSignalView.setColor(Color.DKGRAY);
             ((View) mBtnSpeed.getParent()).setVisibility(View.GONE);
+
+            getSupportActionBar().setIcon(0);
         }
 
     }

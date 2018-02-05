@@ -34,6 +34,8 @@
     <string name="notice_get_device_status">Load devices status……</string>
     <string name="notice_get_master">Load Master info……</string>
     <string name="notice_connect_wifi">Go to connect WIFI?</string>
+    <string name="new_user">New user</string>
+    <string name="notice_please_choice_one">Please choose any one choice.</string>
     <!--mainactivity-->
     <string name="title_intensity_map">Intensity area picture</string>
     <string name="action_optimize">Optimize</string>
@@ -68,6 +70,7 @@
     <string name="adviceChannel">Advice to use %d channel.</string>
     <string name="formatChannalUsageCondition">"Channel %d:%d"</string>
     <string name="noticeWaitForReconnect">Channel change complete,please wait for reconnect……</string>
+    <string name="optimizeResult">Optimize result</string>
 
     <!--OprationActivity-->
     <string name="ask_delete_recode">Are your really to delete all the programme recodes?</string>

@@ -4,10 +4,14 @@ import android.content.Context;
 
 import com.changhong.wifiairscout.db.DBHelper;
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.Where;
 
 import java.lang.reflect.ParameterizedType;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by fuheng on 2018/1/23.
@@ -70,10 +74,49 @@ public class BaseDao<T1, T2> {
         return null;
     }
 
+    public List<T1> queryByParam(Map<String, T2> queryParam) {
+
+        try {
+            Where<T1, Integer> where = mDao.queryBuilder().where();
+            Iterator<Map.Entry<String, T2>> iterator = queryParam.entrySet().iterator();
+            while (true) {
+                Map.Entry<String, T2> entry = iterator.next();
+                where.eq(entry.getKey(), entry.getValue());
+                if (iterator.hasNext())
+                    where.and();
+                else
+                    break;
+            }
+            return where.query();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public List<T1> deleteByParam(String columnName, T2 obj) {
         try {
             List<T1> a = mDao.deleteBuilder().where().eq(columnName, obj).query();
             return a;
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public List<T1> deleteByParam(Map<String, T2> queryParam) {
+        try {
+            Where<T1, Integer> where = mDao.deleteBuilder().where();
+            Iterator<Map.Entry<String, T2>> iterator = queryParam.entrySet().iterator();
+            while (true) {
+                Map.Entry<String, T2> entry = iterator.next();
+                where.eq(entry.getKey(), entry.getValue());
+                if (iterator.hasNext())
+                    where.and();
+                else
+                    break;
+            }
+            return where.query();
         } catch (SQLException e) {
             e.printStackTrace();
         }

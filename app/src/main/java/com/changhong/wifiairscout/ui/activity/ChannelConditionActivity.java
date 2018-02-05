@@ -346,6 +346,8 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
         @Override
         public void onProgressUpdate(GenericTask task, MessageData param) {
             RegisterResponse rr = new RegisterResponse(param.getMsgBody());
+
+            App.sInstance.setWlanIndexObject(rr.getWlanCondition());
             Preferences.getIntance().setMaxMsgBody(rr.getMax_msg_body_len());
             Preferences.getIntance().setKeepAliveInterval(rr.getKeepalive_interval());
             App.sInstance.setMasterMac(param.getMacString());

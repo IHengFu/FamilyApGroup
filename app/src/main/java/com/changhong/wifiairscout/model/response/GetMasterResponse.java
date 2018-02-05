@@ -41,7 +41,7 @@ public class GetMasterResponse extends BaseResponse {
         StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < 4; ++i) {
-            sb.append(String.format("%02x", data[offset + index++])).append(':');
+            sb.append(data[offset + index++] & 0xff).append(':');
         }
         sb.deleteCharAt(sb.length() - 1);
 
@@ -56,7 +56,6 @@ public class GetMasterResponse extends BaseResponse {
 
         wifidevice.setSsid(getStringInData(data, index, 32));
         index += 32;
-
 
         wifidevice.setEncrypt(data[index++]);
         wifidevice.setCipher(data[index++]);

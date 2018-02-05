@@ -10,6 +10,7 @@ import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -30,6 +31,7 @@ import com.changhong.wifiairscout.task.UDPTask;
 import com.changhong.wifiairscout.ui.view.ArcView;
 import com.changhong.wifiairscout.ui.view.SignalView;
 import com.changhong.wifiairscout.utils.CommUtils;
+import com.changhong.wifiairscout.utils.KeyboardUtils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -92,6 +94,7 @@ public class DeviceLocationDetailActivity extends BaseActivtiy implements TextWa
             mTvDeviceName.setText(device.getName());
         else
             mTvDeviceName.setText(mMac.substring(12));
+        mTvDeviceName.setSelection(mTvDeviceName.getText().length());
 
         mTvDeviceName.addTextChangedListener(this);
 

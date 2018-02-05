@@ -1,14 +1,13 @@
 package com.changhong.wifiairscout.db.dao;
 
 import android.content.Context;
-
-import com.changhong.wifiairscout.db.DBHelper;
-import com.j256.ormlite.dao.Dao;
-
-import java.sql.SQLException;
-import java.util.List;
+import android.text.TextUtils;
 
 import com.changhong.wifiairscout.db.data.ProgrammeGroup;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 /**
  * Created by fuheng on 2018/1/23.
@@ -20,14 +19,33 @@ public class ProgrammeDao extends BaseDao<ProgrammeGroup, String> {
         super(context);
     }
 
-
-    public List<ProgrammeGroup> queryByName(String name) {
-        return queryByParam("name", name);
+    public List<ProgrammeGroup> queryByUserName(String userName) {
+        List<ProgrammeGroup> a = queryByParam("userName", userName);
+        return a;
     }
 
-    public List<ProgrammeGroup> getAll() {
+    public List<ProgrammeGroup> query(String userName, String name) {
+        if (TextUtils.isEmpty(userName))
+            return null;
+        HashMap<String, String> hash = new HashMap<>();
+        hash.put("name", name);
+        hash.put("userName", userName);
+        return queryByParam(hash);
+    }
 
-        return loadAll();
+    public List<String> getUserNames() {
+
+        List<ProgrammeGroup> all = loadAll();
+        if (all == null || all.isEmpty())
+            return null;
+
+        List<String> result = new ArrayList<>();
+        for (ProgrammeGroup o : all) {
+            if (!result.contains(o.getUserName()))
+                result.add(o.getUserName());
+        }
+
+        return result;
     }
 
 }

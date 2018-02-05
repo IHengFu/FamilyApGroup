@@ -11,6 +11,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import com.changhong.wifiairscout.R;
+import com.changhong.wifiairscout.utils.KeyboardUtils;
 
 /**
  * Created by fuheng on 2018/1/22.
@@ -44,6 +45,7 @@ public class DefaultInputDialog extends Dialog implements View.OnClickListener {
                 dismiss();
                 break;
         }
+
     }
 
     public void setInputType(int type) {
@@ -53,6 +55,12 @@ public class DefaultInputDialog extends Dialog implements View.OnClickListener {
     public void show() {
         super.show();
         mEditText.requestFocus();
+    }
+
+    @Override
+    public void setCancelable(boolean flag) {
+        findViewById(R.id.btn_cancle).setVisibility(flag ? View.VISIBLE : View.GONE);
+        super.setCancelable(flag);
     }
 
     public void setOnCommitListener(@Nullable OnInputDialogCommitListener listener) {

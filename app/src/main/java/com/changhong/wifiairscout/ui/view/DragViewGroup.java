@@ -740,9 +740,10 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
         }
 
         isPointState = pointState;
+        requestLayout();
         refresh();
 
-        postInvalidate();
+//        postInvalidate();
     }
 
     public View createDisplayView(DeviceLocation d, float scale, int scrollX, int scrollY) {

@@ -10,9 +10,10 @@ import com.changhong.wifiairscout.App
 
 @DatabaseTable(tableName = "programme_table")
 data class ProgrammeGroup(
-        @DatabaseField(generatedId = true) val id: Int,
+        @DatabaseField(generatedId = true) var id: Int,
         @DatabaseField(columnName = "name") var name: String?,
         @DatabaseField(columnName = "group") var group: Long,
-        @DatabaseField(columnName = "avarageRssi") var rssi: Byte) {
-    constructor() : this(0, null, System.currentTimeMillis(), App.MIN_RSSI)
+        @DatabaseField(columnName = "averageRSSI") var rssi: Byte,
+        @DatabaseField(columnName = "userName") var userName: String?) {
+    constructor() : this(0, null, System.currentTimeMillis(), App.MIN_RSSI, null)
 }
