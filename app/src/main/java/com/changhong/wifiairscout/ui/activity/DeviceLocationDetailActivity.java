@@ -4,12 +4,16 @@ package com.changhong.wifiairscout.ui.activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.style.ImageSpan;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -71,7 +75,6 @@ public class DeviceLocationDetailActivity extends BaseActivtiy implements TextWa
 
         CommUtils.transparencyBar(this);
 
-        EventBus.getDefault().register(this);
         getSupportActionBar().setTitle(R.string.title_device_detail);
 
         mTvDeviceName = findViewById(R.id.tv_device_name);
@@ -88,18 +91,23 @@ public class DeviceLocationDetailActivity extends BaseActivtiy implements TextWa
         mNickName = getIntent().getStringExtra(Intent.EXTRA_TEXT);
         mMac = getIntent().getStringExtra(Intent.EXTRA_ASSIST_INPUT_DEVICE_ID);
 
-        if (mNickName != null)
+        if (mNickName != null) {
             mTvDeviceName.setText(mNickName);
-        else if (device != null)
+        }
+        else if (device != null) {
             mTvDeviceName.setText(device.getName());
-        else
+        }
+        else {
             mTvDeviceName.setText(mMac.substring(12));
+        }
         mTvDeviceName.setSelection(mTvDeviceName.getText().length());
 
         mTvDeviceName.addTextChangedListener(this);
 
         mBtnSpeed = findViewById(R.id.btn_speed);
         mBtnSpeed.setOnClickListener(this);
+
+        EventBus.getDefault().register(this);
     }
 
     @Override
@@ -149,6 +157,13 @@ public class DeviceLocationDetailActivity extends BaseActivtiy implements TextWa
         if (device != null) {
             mTvIP.setText(device.getIp());
             mTvCurChannal.setText("" + device.getChannel());
+            if (device.getWlan_idx() == 0) {
+                SpannableString spanText = new SpannableString(" <img/>");
+                Drawable drawable = getDrawable(R.drawable.vector_5g);
+                drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+                spanText.setSpan(new ImageSpan(drawable), 0, spanText.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+                mTvCurChannal.append(spanText);
+            }
 
             mAnimSignalView.setVisibility(View.VISIBLE);
             if (device.getType() == App.TYPE_DEVICE_WIFI) {

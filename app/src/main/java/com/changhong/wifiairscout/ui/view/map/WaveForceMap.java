@@ -98,7 +98,7 @@ public class WaveForceMap implements TypeMap {
         Rect rect = mSketchMapDrawable.getBounds();
         mPathPaint.setColor(Color.BLACK);
         canvas.drawText(mStrIntensity[0], rect.left - mRectStrSkechMap.width() - 1, rect.bottom, mPathPaint);
-        canvas.drawText(mStrIntensity[1], rect.right + 1, rect.bottom, mPathPaint);
+        canvas.drawText(mStrIntensity[2], rect.right + 1, rect.bottom, mPathPaint);
     }
 
     @Override

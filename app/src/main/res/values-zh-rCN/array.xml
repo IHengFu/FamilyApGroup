@@ -13,6 +13,7 @@
     </array>
     <array name="intensity">
         <item>强</item>
+        <item>中</item>
         <item>弱</item>
     </array>
     <string-array name="pathOfHouseStyle">

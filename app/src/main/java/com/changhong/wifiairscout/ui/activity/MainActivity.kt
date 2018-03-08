@@ -11,7 +11,6 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.AdapterView
 import com.changhong.wifiairscout.App
 import com.changhong.wifiairscout.R
 import com.changhong.wifiairscout.db.DBHelper
@@ -20,7 +19,6 @@ import com.changhong.wifiairscout.db.dao.ProgrammeDao
 import com.changhong.wifiairscout.db.data.DeviceLocation
 import com.changhong.wifiairscout.db.data.ProgrammeGroup
 import com.changhong.wifiairscout.interfaces.OnItemDragListener
-import com.changhong.wifiairscout.model.HouseData
 import com.changhong.wifiairscout.model.MessageData
 import com.changhong.wifiairscout.model.MessageDataFactory
 import com.changhong.wifiairscout.model.WifiDevice
@@ -35,8 +33,8 @@ import com.changhong.wifiairscout.ui.adapter.DeviceViewPagerAdapter
 import com.changhong.wifiairscout.ui.view.DefaultInputDialog
 import com.changhong.wifiairscout.ui.view.DragViewGroup
 import com.changhong.wifiairscout.ui.view.DragViewPager
+import com.changhong.wifiairscout.ui.view.UserControlDialog
 import com.changhong.wifiairscout.utils.CommUtils
-import com.changhong.wifiairscout.utils.FileUtils
 import kotlinx.android.synthetic.main.activity_main.*
 import org.greenrobot.eventbus.EventBus
 import org.greenrobot.eventbus.Subscribe
@@ -49,14 +47,17 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
     private val layout_apartment: DragViewGroup by lazy { findViewById<DragViewGroup>(R.id.layout_apartment) }
 
-    private val mArrayDevices = ArrayList<WifiDevice>()
+    val mArrayDevices = ArrayList<WifiDevice>()
 
     private var mUdpTask: GenericTask? = null
+
+    private var isFirst = true
 
     companion object {
         const val REQUEST_OPRATION = 2 //设置请求的code
         const val REQUEST_DEVICE_DETAIL = 8 //设置请求的code
 
+        var sIntance: MainActivity? = null
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -66,20 +67,22 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        sIntance = this
+
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
         toolbar.setNavigationIcon(R.mipmap.ic_setting)
         EventBus.getDefault().register(this)
         if (!App.sTest) {
-            startService(Intent(this, StartService::class.java))
+            StartService.startService(this, StartService.ACTION_LOAD_MASTER)
             showProgressDialog(getString(R.string.notice_download_data), false, null)
-        } else {
+        } else {//test
             mArrayDevices.addAll(getDevices())
         }
 
         initViewPager()
-//        resetHouseStructure()
-        CommUtils.transparencyBar(this);
+        CommUtils.transparencyBar(this)
 
         layout_apartment.setOnItemClickListener { adapterView, view1, _, _ ->
             val intent = Intent(this@MainActivity, DeviceLocationDetailActivity::class.java)
@@ -90,7 +93,6 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             startActivityForResult(intent, REQUEST_DEVICE_DETAIL)
         }
 
-//        layout_apartment.setOnItemDragListener { view, _ -> StartService.startService(this@MainActivity, StartService.ACTION_LOAD_DEVICE_STATUS) }
         layout_apartment.setOnItemDragListener(object : OnItemDragListener {
             override fun onAdd(device: WifiDevice?) {
                 deviceAdapter.mHashShown.put(device?.mac!!, true)
@@ -107,7 +109,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
             override fun onDroped(view: View?, device: WifiDevice?) {
                 if (device != null && device.type == App.TYPE_DEVICE_WIFI) {
-                    askForSaveProgramme()
+//                    askForSaveProgramme()
                 }
             }
 
@@ -119,6 +121,10 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         findViewById<View>(R.id.btn_optimization).setOnClickListener(this)
 
         startFlushRssi()
+
+        isFirst = true
+
+        askInputUser()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -196,11 +202,12 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
             override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
                 val gcsr = GetClientStatusResponse(param?.msgBody)
-                for (device in gcsr.devices) {
-                    System.err.println("mac = ${device.mac} rssi = ${device.rssi}")
-                    device.rssi = Math.min(device.rssi - 100, -20).toByte()
-                    System.err.println("==>mac = ${device.mac} rssi = ${device.rssi}")
-                }
+                if (gcsr.devices != null)
+                    for (device in gcsr.devices) {
+                        System.err.println("mac = ${device.mac} rssi = ${device.rssi}")
+                        device.rssi = Math.min(device.rssi - 100, -20).toByte()
+                        System.err.println("==>mac = ${device.mac} rssi = ${device.rssi}")
+                    }
                 EventBus.getDefault().postSticky(gcsr)
             }
 
@@ -211,7 +218,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         })
     }
 
-    fun getDevices(): ArrayList<WifiDevice> {
+    private fun getDevices(): ArrayList<WifiDevice> {
 
         if (App.sTest) {
             val result = ArrayList<WifiDevice>(6)
@@ -284,6 +291,10 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
                 if (it.mac.equals(mac)) {
                     it.nickName = nickname
                     layout_apartment.refresh()
+
+                    //add ask
+//                    if (it.type == App.TYPE_DEVICE_WIFI)
+//                        askForSaveProgramme(nickname)
                     return@forEach
                 }
             }
@@ -293,26 +304,39 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
     fun onDataSynEvent(event: GetClientResponse) {
         Log.e(javaClass.simpleName, "event---->" + event.devices)
-        StartService.startService(this, StartService.ACTION_LOAD_MASTER)
-        StartService.startService(this, StartService.ACTION_LOAD_DEVICE_STATUS)
 
-        //clean client
-        val listToDelete = ArrayList<WifiDevice>();
-        mArrayDevices.forEach { device ->
-            if (device.type == App.TYPE_DEVICE_CLIENT)
-                listToDelete.add(device)
-        }
-        mArrayDevices.removeAll(listToDelete)
+        if (event.devices != null) {
+            //clean client
+            val listToDelete = ArrayList<WifiDevice>()
+            mArrayDevices.forEach { device ->
+                if (App.TYPE_DEVICE_CLIENT == device.type || App.TYPE_DEVICE_PHONE == device.type) {
+                    var isContain = false
+                    if (!event.devices.isEmpty()) {
+                        for (device1 in event.devices) {
+                            if (device1.equals(device)) {
+                                isContain = true
+                                device.eat(device1)
+                                break
+                            }
+                        }
+                    }
+                    if (!isContain)
+                        listToDelete.add(device)
+                }
+            }
+            mArrayDevices.removeAll(listToDelete)
 
-        // check and add new
-        if (event.devices == null || event.devices.isEmpty()) {
+            // check and add new
+            val listToAdd = getMoreObject(event.devices, mArrayDevices)
+            if (listToAdd != null && !listToAdd.isEmpty()) {
+                mArrayDevices.addAll(listToAdd)
+            }
+
+            layout_apartment.updataOfflineDevices(listToAdd, listToDelete);
+
             deviceAdapter.notifyDataSetChanged()
-            return
         }
-        mArrayDevices.addAll(event.devices)
-        deviceAdapter.notifyDataSetChanged()
-
-        hideProgressDialog()
+        StartService.startService(this, StartService.ACTION_LOAD_DEVICE_STATUS)
     }
 
 
@@ -336,22 +360,32 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         }
         if (isChanged)
             layout_apartment.refresh()
+
+        if (isFirst) {
+            hideProgressDialog()
+            isFirst = false;
+        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
-    fun onDataSynEvent(event: WifiDevice) {
-        for (d in mArrayDevices) {
-            if (d.mac.equals(event.mac)) {
-                d.eat(event)
-                deviceAdapter.notifyDataSetChanged()
-                layout_apartment.refresh()
-                return
+    fun onDataSynEvent(event: GetMasterResponse) {
+        if (event.master != null) {
+            val device = event.master
+            for (d in mArrayDevices) {
+                if (d.mac.equals(device.mac)) {
+                    d.eat(device)
+                    deviceAdapter.notifyDataSetChanged()
+                    layout_apartment.refresh()
+                    StartService.startService(this, StartService.ACTION_LOAD_DEVICE)
+                    return
+                }
             }
-        }
 
-        mArrayDevices.add(event)
-        layout_apartment.refresh()
-        deviceAdapter.notifyDataSetChanged()
+            mArrayDevices.add(device)
+            layout_apartment.refresh()
+            deviceAdapter.notifyDataSetChanged()
+        }
+        StartService.startService(this, StartService.ACTION_LOAD_DEVICE)
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
@@ -381,7 +415,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
     /**test**/
     private fun startFlushRssi() {
         if (flashCountTimer == null)
-            flashCountTimer = object : CountDownTimer(System.currentTimeMillis(), 10000) {
+            flashCountTimer = object : CountDownTimer(System.currentTimeMillis(), 20000) {
                 override fun onFinish() {
                     System.err.println("onFinish")
                     finish()
@@ -461,27 +495,28 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         })
     }
 
-    /**刷新房屋构造**/
-    private fun resetHouseStructure() {
-        initHouseStructure(Preferences.getIntance().houseStyle)
-    }
-
-    /**重新设置房屋布局图*/
-    private fun initHouseStructure(index: Int) {
-        val filename = resources.getStringArray(R.array.pathOfHouseStyle)[index]
-        val content = FileUtils.getTextFromAssets(this, filename, App.CHARSET)
-        var housedata = HouseData(content)
-        //TODO
-//        layout_apartment.setHouseData(housedata)
-    }
-
     private fun askForSaveProgramme() {
+        askForSaveProgramme(null)
+    }
+
+    private fun askForSaveProgramme(str: CharSequence?) {
         val data = layout_apartment.exportData()
 
         if (data == null || data.isEmpty()) {
             showToast(getString(R.string.no_data))
             return
         }
+
+        run {
+            data?.forEach { it ->
+                when (it.type) {
+                    App.TYPE_DEVICE_CLIENT, App.TYPE_DEVICE_PHONE -> return@run;
+                }
+            }
+            showToast(getString(R.string.notice_at_least_one_client))
+            return
+        }
+
         val pDao = ProgrammeDao(this)
         val allrecodes = pDao.queryByUserName(App.sInstance.guestName)
         val recodesNums = allrecodes?.size ?: 0
@@ -492,6 +527,8 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
         val dialog = DefaultInputDialog(this)
         dialog.setTitle(R.string.action_save_programme)
+        if (str != null)
+            dialog.setMessage(str)
         dialog.setTab(App.sInstance.guestName + ":")
         dialog.setOnCommitListener { dialogInstance, msg, var3 ->
             if (TextUtils.isEmpty(msg)) {
@@ -544,7 +581,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         }
         var choice = -1
         AlertDialog.Builder(this)
-                .setTitle("${getString(R.string.action_load_programme)} (${App.sInstance.guestName}:${items.size})")
+                .setTitle("${getString(R.string.action_load_programme)} (${getString(R.string.username)}:${App.sInstance.guestName},${getString(R.string.count_of_programme)}:${items.size})")
                 .setSingleChoiceItems(items, -1, { dialogInterface, i -> choice = i })
                 .setPositiveButton(R.string.action_cancel, null)
                 .setNegativeButton(R.string.action_load, { dialogInterface, i ->
@@ -567,7 +604,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
     private fun loadProgramme(programmeGroup: ProgrammeGroup) {
         val dDao = DeviceLocationDao(this)
-        val recode = dDao.queryByName(programmeGroup.group)
+        val recode = dDao.queryByProgrammeId(programmeGroup.group)
         Log.e("==~", "==~" + recode.toString())
         if (recode != null && !recode.isEmpty())
             for (i in mArrayDevices) loop@ {
@@ -660,5 +697,49 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             })
         }
         dialog.show()
+    }
+
+    fun askInputUser() {
+        val dialog = UserControlDialog(this)
+        dialog.setTitle("请输入当前用户名称")
+        dialog.setOnCommitListener { dialoginterface, string, var3 ->
+            if (TextUtils.isEmpty(string)) {
+                showToast(getString(R.string.no_data))
+                return@setOnCommitListener
+            }
+
+            App.sInstance.guestName = string
+            dialoginterface.dismiss()
+        }
+
+        run {
+            val pDao = ProgrammeDao(this)
+            val num = pDao.rowNums
+            val usernames = pDao.userNames
+            dialog.setChoices(usernames)
+        }
+
+        dialog.setCancelable(false)
+        dialog.show()
+    }
+
+    private fun <T> getMoreObject(list1: List<T>, list2: List<T>): List<T>? {
+        if (list1 == null || list1.isEmpty())
+            return list2
+
+        if (list2 == null || list2.isEmpty())
+            return null
+
+        val result = ArrayList<T>()
+        for (item2 in list1) {
+            val isContain = list2.any { item2!!.equals(it) }
+            if (!isContain)
+                result.add(item2)
+        }
+
+        if (result.isEmpty())
+            return null
+        else
+            return result
     }
 }

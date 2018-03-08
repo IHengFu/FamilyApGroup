@@ -20,7 +20,7 @@ public class DeviceLocationDao extends BaseDao<DeviceLocation, Long> {
         super(context);
     }
 
-    public List<DeviceLocation> queryByName(long groupId) {
+    public List<DeviceLocation> queryByProgrammeId(long groupId) {
         return queryByParam("group", groupId);
     }
 

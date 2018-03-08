@@ -27,8 +27,9 @@ public class BaseActivtiy extends AppCompatActivity {
         }
     }
 
-    protected void hideProgressDialog(){
-        mProgressDialog.dismiss();
+    protected void hideProgressDialog() {
+        if (mProgressDialog != null)
+            mProgressDialog.dismiss();
     }
 
     protected void showToast(CharSequence cs) {

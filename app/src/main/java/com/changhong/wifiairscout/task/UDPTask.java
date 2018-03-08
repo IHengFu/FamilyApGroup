@@ -67,7 +67,7 @@ public class UDPTask extends GenericTask implements MyCountDownTimerListener {
             InetAddress address = InetAddress.getByName(ip);
             send(msg.getMessageData(), address, port);
 
-            Thread.sleep(500);
+            sleep(300);
 
             while (true) {
 
@@ -107,10 +107,6 @@ public class UDPTask extends GenericTask implements MyCountDownTimerListener {
             e.printStackTrace();
             setException(e);
             return TaskResult.IO_ERROR;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            setException(e);
-            return TaskResult.FAILED;
         } catch (TimeoutException e) {
             e.printStackTrace();
             setException(e);
@@ -156,5 +152,13 @@ public class UDPTask extends GenericTask implements MyCountDownTimerListener {
     public void onFinish(@NotNull CountDownTimer timer) {
         setException(new TimeoutException("通信超时"));
         cancle();
+    }
+
+    private void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

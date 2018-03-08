@@ -12,6 +12,7 @@ import android.graphics.drawable.Animatable;
 import android.graphics.drawable.Drawable;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.AppCompatImageView;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.TypedValue;
@@ -39,6 +40,9 @@ import com.changhong.wifiairscout.ui.view.map.TypeMap;
 import com.changhong.wifiairscout.ui.view.map.WaveForceMap;
 import com.changhong.wifiairscout.utils.CommUtils;
 import com.changhong.wifiairscout.utils.UnitUtils;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -717,6 +721,19 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
     }
 
     public List<DeviceLocation> exportData() {
+
+        if (mListDeviceInfo == null)
+            return null;
+
+        for (DeviceLocation deviceLocation : mListDeviceInfo) {
+            if (deviceLocation.getWifiDevice() == null)
+                deviceLocation.setRssi(Byte.MIN_VALUE);
+            else
+                deviceLocation.setRssi(deviceLocation.getWifiDevice().getRssi());
+
+            if (TextUtils.isEmpty(deviceLocation.getNickName()) && deviceLocation.getWifiDevice() != null)
+                deviceLocation.setNickName(deviceLocation.getWifiDevice().getName());
+        }
         return mListDeviceInfo;
     }
 
@@ -798,5 +815,34 @@ public class DragViewGroup extends ViewGroup implements View.OnTouchListener,
 
     public void setOnItemDragListener(OnItemDragListener l) {
         mOnItemDragListener = l;
+    }
+
+    public void updataOfflineDevices(@Nullable List<WifiDevice> listToAdd, @NotNull ArrayList<WifiDevice> listToDelete) {
+
+        if (mListDeviceInfo == null || mListDeviceInfo.isEmpty())
+            return;
+
+        if (listToAdd != null) {
+            for (DeviceLocation dl : mListDeviceInfo) {
+                for (WifiDevice wd : listToAdd)
+                    if (dl.getMac().equals(wd.getMac())) {
+                        dl.setWifiDevice(wd);
+                        break;
+                    }
+            }
+        }
+
+        if (listToDelete != null) {
+            for (DeviceLocation dl : mListDeviceInfo) {
+                for (WifiDevice wd : listToDelete)
+                    if (dl.getMac().equals(wd.getMac())) {
+                        dl.setWifiDevice(null);
+                        dl.setRssi(Byte.MIN_VALUE);
+                        break;
+                    }
+            }
+        }
+        refresh();
+
     }
 }

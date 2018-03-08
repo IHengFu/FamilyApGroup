@@ -55,6 +55,9 @@
     <string name="request_send_complete">Request-send completed.</string>
     <string name="notice_programme_max_limit">Can not add more programme because reached max number.</string>
     <string name="tab_input_channel_number">Please input the channel num:</string>
+    <string name="notice_at_least_one_client">At least one clint require.</string>
+    <string name="username">User name</string>
+    <string name="count_of_programme">Count of programme</string>
     <!--channel condition-->
     <string name="no_data">No data</string>
     <string name="start_scan">Start scan</string>
@@ -92,4 +95,6 @@
     <string name="action_test_speed">Click to test Speed</string>
     <string name="notice_wait_for_test_speed">In test speed,please wait for a moument……</string>
     <string name="notice_test_task_canceled">Test task has been canceled.</string>
+    <!--ChannelOptimizeResult-->
+    <string name="cur_programme">Current programme</string>
 </resources>

@@ -27,8 +27,9 @@ public interface TypeMap {
             0.8816249605953462f,
             0.40771973258763594f};
 
-    public static final int COLOR_STRONG = 0xff55ff55;
-    public static final int COLOR_WEAK = 0xffff5555;
+    public static final int COLOR_STRONG = 0xff00dd00;
+    public static final int COLOR_MEDIUM = 0xffFFAE00;
+    public static final int COLOR_WEAK = 0xffdd5555;
 
 //    static {
 //        ARR_DISTANCE_RATE = new float[RATE_WAVE.length];

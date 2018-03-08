@@ -152,7 +152,7 @@ public class RegisterResponse extends BaseResponse {
                 "} " + super.toString();
     }
 
-    public class WlanIndexObject {
+    public static class WlanIndexObject {
         private byte wlan_idx;//	1	无线radio索引; 0: 5G; 1: 2.4G;
         private byte bound;//1	0: 20MHz; 1: 40MHz; 2: 80MHz
         private byte sideband;//	1	0: 高; 1: 低

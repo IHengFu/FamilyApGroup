@@ -56,7 +56,7 @@ public class GetTranslateSpeedResponse extends BaseResponse {
         dr.mac = sb.toString();
 
         for (int i = 0; i < 4; i++) {
-            long temp = data[offset + index + i];
+            long temp = data[offset + index + i] & 0xff;
             dr.rate |= temp << (8 * i);
         }
         return dr;
@@ -83,19 +83,16 @@ public class GetTranslateSpeedResponse extends BaseResponse {
         }
 
         public String getRateString() {
-            long result = rate / 1024;
-            if (result == 0)
+            if (rate >>> 10 == 0)
                 return String.format("%db/s", rate);
 
-            result /= 1024;
-            if (result == 0)
+            if (rate >>> 20 == 0)
                 return String.format("%.1fkb/s", rate / 1024f);
 
-            result /= 1024;
-            if (result == 0)
-                return String.format("%.1fmb/s", rate / 1024f / 1024);
+            if (rate >>> 30 == 0)
+                return String.format("%.1fmb/s", (rate >>> 10) / 1024f);
 
-            return String.format("%.1fgb/s", rate / 1024f / 1024 / 1024);
+            return String.format("%.1fgb/s", (rate >>> 20) / 1024f);
         }
 
         @Override

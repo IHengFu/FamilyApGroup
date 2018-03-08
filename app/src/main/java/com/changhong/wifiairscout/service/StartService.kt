@@ -63,6 +63,10 @@ class StartService : Service() {
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
         when (intent.getIntExtra(Intent.EXTRA_INDEX, 0)) {
             ACTION_START_ALL -> {
+
+                val trace = Throwable().stackTrace
+                trace.forEach { it -> Log.w(StartService.javaClass.simpleName, "at : " + it.className + " . " + it.methodName + "(" + it.lineNumber + ")") }
+
                 startLoadMaster()
                 startLoadDevice()
                 startLoadDeviceStatus()
@@ -147,9 +151,12 @@ class StartService : Service() {
             return String()
         }
 
+        fun canRetry(): Boolean {
+            return retryTimes == 0
+        }
 
         fun retry(runnable: Runnable) {
-            if (--retryTimes == 0)
+            if (retryTimes-- <= 0)
                 return
             if (retryInterval > 0)
                 handler.postDelayed(runnable, retryInterval)
@@ -178,7 +185,7 @@ class StartService : Service() {
         override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
 
             val gcr = GetClientResponse(param?.msgBody)
-            if (gcr.devices == null || gcr.devices.size == 1) {
+            if (gcr.devices == null || gcr.devices.size == 0) {
                 EventBus.getDefault().postSticky(gcr)
                 return
             }
@@ -210,9 +217,12 @@ class StartService : Service() {
         }
 
         override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
-            if (result != TaskResult.OK)
-                if (task?.exception != null)
+            if (result != TaskResult.OK) {
+                if (retryTimes > 0)
                     retry(Runnable { startLoadDevice() })
+                else
+                    EventBus.getDefault().postSticky(GetClientResponse())
+            }
             super.onPostExecute(task, result)
         }
     }
@@ -220,18 +230,21 @@ class StartService : Service() {
     private val mLoadDeviceStatusListener = object : UDPTaskListner("获取设备状态……", 3, 500) {
 
         override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
-            if (result != TaskResult.OK)
-                retry(Runnable { startLoadDeviceStatus() })
+            if (retryTimes > 0)
+                retry(Runnable { startLoadDevice() })
+            else
+                EventBus.getDefault().postSticky(GetClientStatusResponse())
             super.onPostExecute(task, result)
         }
 
         override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
             val gcsr = GetClientStatusResponse(param?.msgBody)
-            for (device in gcsr.devices) {
-                System.err.println("mac = ${device.mac} rssi = ${device.rssi}")
-                device.rssi = Math.min(device.rssi - 100, -20).toByte()
-                System.err.println("==>mac = ${device.mac} rssi = ${device.rssi}")
-            }
+            if (gcsr.devices != null)
+                for (device in gcsr.devices) {
+                    System.err.println("mac = ${device.mac} rssi = ${device.rssi}")
+                    device.rssi = Math.min(device.rssi - 100, -20).toByte()
+                    System.err.println("==>mac = ${device.mac} rssi = ${device.rssi}")
+                }
             EventBus.getDefault().postSticky(gcsr)
         }
 
@@ -241,20 +254,24 @@ class StartService : Service() {
     private val mLoadMasterListener = object : UDPTaskListner("获取Master信息……", 3, 500) {
 
         override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
-            if (result != TaskResult.OK)
-                retry(Runnable { startLoadMaster() })
+            if (result != TaskResult.OK) {
+                if (retryTimes > 0)
+                    retry(Runnable { startLoadMaster() })
+                else
+                    EventBus.getDefault().postSticky(GetMasterResponse())
+            }
             super.onPostExecute(task, result)
         }
 
         override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
-
-            val master = GetMasterResponse(param?.msgBody).master
+            val response = GetMasterResponse(param?.msgBody)
+            val master = response.master
             master.name = getString(R.string.wifi)
             master.rssi = App.MAX_RSSI
             master.type = App.TYPE_DEVICE_WIFI
             App.sInstance.curChannel = master.channel
             App.sInstance.curWlanIdx = master.wlan_idx
-            EventBus.getDefault().postSticky(master)
+            EventBus.getDefault().postSticky(response)
 
         }
     }

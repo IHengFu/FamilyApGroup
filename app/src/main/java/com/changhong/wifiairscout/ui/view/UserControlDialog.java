@@ -26,6 +26,7 @@ public class UserControlDialog extends Dialog implements View.OnClickListener {
     private final TextView mTextTab;
     private final ViewSwitcher mViewSwticher01;
     private final RadioGroup mRadioGroup;
+    private final TextView mTextTitle;
     private DefaultInputDialog.OnInputDialogCommitListener mListener;
 
     private List<String> mChoices;
@@ -39,6 +40,7 @@ public class UserControlDialog extends Dialog implements View.OnClickListener {
 
         mRadioGroup = findViewById(R.id.radiogroup01);
         mViewSwticher01 = findViewById(R.id.viewswticher01);
+        mTextTitle = findViewById(R.id.tv_title);
         mEditText = findViewById(R.id.et_input);
         mTextTab = findViewById(R.id.tv_tab);
     }
@@ -123,6 +125,16 @@ public class UserControlDialog extends Dialog implements View.OnClickListener {
     public void setHint(int resid) {
         mEditText.setHint(resid);
 
+    }
+
+    public void setTitle(CharSequence c) {
+        mTextTitle.setText(c);
+        mTextTitle.setVisibility(TextUtils.isEmpty(c) ? View.GONE : View.VISIBLE);
+    }
+
+    public void setTitle(int resid) {
+        mTextTitle.setText(resid);
+        mTextTitle.setVisibility(resid == 0 ? View.GONE : View.VISIBLE);
     }
 
     public void setTab(CharSequence c) {

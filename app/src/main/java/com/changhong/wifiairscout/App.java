@@ -7,6 +7,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.support.v7.app.AppCompatDelegate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -19,13 +20,14 @@ import com.changhong.wifiairscout.preferences.Preferences;
  */
 
 public class App extends Application {
-    static {
-        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
-    }
+
+
+    private static List<RegisterResponse.WlanIndexObject> DEFAULT_WLAN_INDEX_OBJECT;
+
 
     public static App sInstance;
 
-    public static final boolean sTest = true;
+    public static boolean sTest = false;
 
     private String guestName;
 
@@ -85,6 +87,22 @@ public class App extends Application {
     //默认编码
     public static final String CHARSET = "utf-8";
 
+    static {
+        AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
+
+        DEFAULT_WLAN_INDEX_OBJECT = new ArrayList<>(2);
+        RegisterResponse.WlanIndexObject item = new RegisterResponse.WlanIndexObject();
+        item.setChannel((byte) 43);
+        item.setSsid("AA:BB:CC:DD:EE:FF");
+        item.setWlan_idx((byte) 0);
+        DEFAULT_WLAN_INDEX_OBJECT.add(item);
+        item = new RegisterResponse.WlanIndexObject();
+        item.setChannel((byte) 10);
+        item.setSsid("FF:EE:DD:CC:BB:AA");
+        item.setWlan_idx((byte) 1);
+        DEFAULT_WLAN_INDEX_OBJECT.add(item);
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -137,6 +155,9 @@ public class App extends Application {
     }
 
     public List<RegisterResponse.WlanIndexObject> getWlanIndexObject() {
+        if (sTest) {
+            return wlanIndexObject == null ? DEFAULT_WLAN_INDEX_OBJECT : wlanIndexObject;
+        }
         return wlanIndexObject;
     }
 

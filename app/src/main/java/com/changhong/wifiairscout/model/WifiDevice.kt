@@ -9,7 +9,7 @@ import java.util.*
  * Created by fuheng on 2017/12/8.
  */
 class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: String?, var channel: Byte = -1) : Parcelable {
-    var rssi: Byte = App.MIN_RSSI
+    var rssi: Byte = Byte.MIN_VALUE
     var cipher: Byte = -1//1:tkip; 2:aes; 3:mixed
 
     var dual_band: Byte = 0//	1	1:双频; 0:单频
@@ -127,7 +127,8 @@ class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: Str
         if (d.name != null)
             this.name = d.name
 
-        this.rssi = d.rssi
+        if (d.rssi != Byte.MIN_VALUE)
+            this.rssi = d.rssi
     }
 
 

@@ -23,11 +23,11 @@
     </android.support.design.widget.AppBarLayout>
 
     <TextView
+        style="?android:attr/textAppearanceLarge"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
         android:text="@string/tabChannelCondition"
-        style="?android:attr/textAppearanceLarge"
         android:textSize="20sp" />
 
     <ListView
@@ -40,23 +40,25 @@
 
     <TextView
         android:id="@+id/tv_advice_title"
+        style="?android:attr/textAppearanceMedium"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
         android:gravity="center"
-        style="?android:attr/textAppearanceMedium"
-        android:text="@string/optimizationAdvice" />
+        android:text="@string/optimizationAdvice"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/textview_advice"
+        style="?android:attr/textAppearanceSmall"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="5dp"
         android:gravity="center"
-        style="?android:attr/textAppearanceSmall"
-        android:textColor="@color/textColorSecondry"
         android:text="@string/adviceChannel"
-        android:textSize="12sp" />
+        android:textColor="@color/textColorSecondry"
+        android:textSize="12sp"
+        android:visibility="gone" />
 
     <View
         android:layout_width="match_parent"

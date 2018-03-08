@@ -2,6 +2,7 @@ package com.changhong.wifiairscout.db.data
 
 import android.os.Parcel
 import android.os.Parcelable
+import com.changhong.wifiairscout.App
 import com.changhong.wifiairscout.model.WifiDevice
 import com.j256.ormlite.field.DatabaseField
 import com.j256.ormlite.table.DatabaseTable
@@ -16,23 +17,25 @@ data class DeviceLocation(
         @DatabaseField(columnName = "y") var y: Float,
         @DatabaseField(columnName = "mac") var mac: String,
         @DatabaseField(columnName = "type") var type: Byte,
-        @DatabaseField(columnName = "group") var group: Long = 0) : Comparable<DeviceLocation>,Parcelable {
+        @DatabaseField(columnName = "group") var group: Long = 0) : Comparable<DeviceLocation>, Parcelable {
 
     @DatabaseField(columnName = "name")
     var nickName: String? = null
+
+    var channel: Byte = 0
+    var intensity: Byte = 0
+    var wifiDevice: WifiDevice? = null
+
+    var angle: Float = 0f
+
+    @DatabaseField(columnName = "rssi")
+    var rssi: Byte = Byte.MIN_VALUE
 
     constructor() : this(0, 0f, 0f, "", 0, 0)
 
     override fun compareTo(other: DeviceLocation): Int {
         return (angle - other.angle).toInt()
     }
-
-    var channel: Byte = 0
-    var intensity: Byte = 0
-    var wifiDevice: WifiDevice? = null
-
-
-    var angle: Float = 0f
 
     constructor(parcel: Parcel) : this(
             parcel.readInt(),

@@ -4,11 +4,14 @@ package com.changhong.wifiairscout.ui.activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v7.app.AppCompatActivity;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.Toolbar;
-import android.text.TextUtils;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ImageSpan;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -33,8 +36,6 @@ import com.changhong.wifiairscout.utils.CommUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-
-import java.util.List;
 
 /**
  * Created by fuheng on 2017/12/12.
@@ -65,7 +66,7 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
 
         CommUtils.transparencyBar(this);
 
-        EventBus.getDefault().register(this);
+
         getSupportActionBar().setTitle(R.string.title_device_detail);
 
         mTvDeviceName = findViewById(R.id.tv_device_name);
@@ -82,6 +83,8 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
 
         mBtnSpeed = findViewById(R.id.btn_speed);
         mBtnSpeed.setOnClickListener(this);
+
+        EventBus.getDefault().register(this);
     }
 
     protected void setEditTextDeable() {
@@ -137,6 +140,14 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
             mTvIP.setText(device.getIp());
             mTvMac.setText(device.getMac());
             mTvCurChannal.setText("" + device.getChannel());
+            if (device.getWlan_idx() == 0) {
+                SpannableString spanText = new SpannableString(" <img/>");
+                Drawable drawable = getDrawable(R.drawable.vector_5g);
+                drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+                spanText.setSpan(new ImageSpan(drawable), 0, spanText.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+                mTvCurChannal.append(spanText);
+            }
+
             mTvDeviceName.setText(device.getName());
 
             mAnimSignalView.setVisibility(View.VISIBLE);
@@ -145,18 +156,21 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
                 signalView.setProgress(100);
                 ((View) mBtnSpeed.getParent()).setVisibility(View.GONE);
 
+            } else if (device.getRssi() == Byte.MIN_VALUE) {
+                signalView.setDisplayString(getString(R.string.tab_cur_signal), "-∞", App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
+                signalView.setProgress(0);
+                ((View) mBtnSpeed.getParent()).setVisibility(View.GONE);
             } else {
                 signalView.setDisplayString(getString(R.string.tab_cur_signal), String.valueOf(device.getRssi()), App.MIN_RSSI + "dBm", ">" + App.MAX_RSSI + "dBm", "dBm");
+
                 float rate = getRate();
                 signalView.setProgress((int) rate * 100);
                 mAnimSignalView.setColor(getSignalColor(rate));
+
                 ((View) mBtnSpeed.getParent()).setVisibility(View.VISIBLE);
             }
 
-            if (device != null && device.getWlan_idx() == 0)
-                getSupportActionBar().setIcon(R.drawable.vector_5g);
-            else
-                getSupportActionBar().setIcon(0);
+            getSupportActionBar().setTitle(R.string.title_device_detail);
         } else {
             mTvIP.setText(null);
             mTvMac.setText(null);
@@ -167,7 +181,7 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
             mAnimSignalView.setColor(Color.DKGRAY);
             ((View) mBtnSpeed.getParent()).setVisibility(View.GONE);
 
-            getSupportActionBar().setIcon(0);
+            getSupportActionBar().setTitle(getString(R.string.title_device_detail) + "(" + getString(R.string.offline) + ")");
         }
 
     }

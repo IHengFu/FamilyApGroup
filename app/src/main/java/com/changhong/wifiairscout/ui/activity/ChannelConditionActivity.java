@@ -1,11 +1,16 @@
 package com.changhong.wifiairscout.ui.activity;
 
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.Toolbar;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ImageSpan;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -36,13 +41,14 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
     private Toolbar mToolBar;
     private ListView mListView;
     private ArrayAdapter mAdapter;
-    private ArrayList<String> mArrayData = new ArrayList();
+    private ArrayList<CharSequence> mArrayData = new ArrayList();
     private TextView mTvAdvice;
     private TextView mTvAdviceTitle;
-    private View mPanelAsk;
     private int mBestChannel;
 
     private List<GenericTask> mArrayTask = new ArrayList<>();
+    private TextView btnCancel;
+    private TextView btnContinue;
 
 
     @Override
@@ -68,10 +74,11 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
 
         mTvAdvice = findViewById(R.id.textview_advice);
         mTvAdviceTitle = findViewById(R.id.tv_advice_title);
-        mPanelAsk = findViewById(R.id.layout_ask);
 
-        findViewById(R.id.btn_accept).setOnClickListener(this);
-        findViewById(R.id.btn_refuse).setOnClickListener(this);
+        btnContinue = findViewById(R.id.btn_accept);
+        btnContinue.setOnClickListener(this);
+        btnCancel = findViewById(R.id.btn_refuse);
+        btnCancel.setOnClickListener(this);
 
         doScan();
 
@@ -91,7 +98,12 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
     public void onClick(View view) {
         switch (view.getId()) {
             case R.id.btn_accept:
-                doOptimization(mBestChannel);
+                if (!isInBestChannel())
+                    doOptimization(mBestChannel);
+                else {
+                    startActivity(new Intent(ChannelConditionActivity.this, ChannelOptimizeResultActivity.class));
+                    finish();
+                }
                 break;
             case R.id.btn_refuse:
                 finish();
@@ -120,6 +132,8 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
                 @Override
                 public void run() {
                     hideProgressDialog();
+                    startActivity(new Intent(ChannelConditionActivity.this, ChannelOptimizeResultActivity.class));
+                    finish();
                 }
             }, 2000);
         } else {
@@ -175,10 +189,21 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
             }
         }
 
+        for (int i = 0; i < num_channel.length; ++i) {
+            String string = String.format(getString(R.string.formatChannalUsageCondition), NUMBER_OF_CHANNEL[i], num_channel[i]);
+            if (NUMBER_OF_CHANNEL[i] == App.sInstance.getWlanIndexObject().get(App.sInstance.getCurWlanIdx()).getChannel()) {
+                SpannableString ss = new SpannableString(string + "<img/>");
+                Drawable drawable = getDrawable(R.drawable.ic_wifi_black_24dp);
+                drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+                ss.setSpan(new ImageSpan(drawable), string.length(), ss.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+                mArrayData.add(ss);
+            } else
+                mArrayData.add(string);
+        }
+
         float minWeight = Float.MAX_VALUE;
         float temp;
         for (int i = 0; i < num_channel.length; ++i) {
-            mArrayData.add(String.format(getString(R.string.formatChannalUsageCondition), NUMBER_OF_CHANNEL[i], num_channel[i]));
             temp = num_channel[i];
             if (i > 0)
                 temp += 0.3f * num_channel[i - 1];
@@ -207,14 +232,18 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
 
         mTvAdvice.setText(String.format(getString(R.string.adviceChannel), mBestChannel));
         mAdapter.notifyDataSetChanged();
-        if (App.sInstance.getCurChannel() != -1 && mBestChannel == App.sInstance.getCurChannel()) {
+        if (isInBestChannel()) {
             mTvAdviceTitle.setText(R.string.noticeCurChannelBest);
             mTvAdvice.setVisibility(View.GONE);
-            mPanelAsk.setVisibility(View.GONE);
+
+            btnCancel.setText(android.R.string.cancel);
+            btnContinue.setText(R.string.action_continue);
+
         } else {
             mTvAdvice.setVisibility(View.VISIBLE);
-            mPanelAsk.setVisibility(View.VISIBLE);
             mTvAdviceTitle.setText(R.string.optimizationAdvice);
+            btnCancel.setText(R.string.action_refuse);
+            btnContinue.setText(R.string.action_accept);
         }
     }
 
@@ -339,6 +368,7 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
                 doRegister();
             else {
                 hideProgressDialog();
+                startActivity(new Intent(ChannelConditionActivity.this, ChannelOptimizeResultActivity.class));
                 finish();
             }
         }
@@ -363,4 +393,10 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
             mArrayTask.remove(task);
         }
     };
+
+    private boolean isInBestChannel() {
+        if (App.sInstance.getWlanIndexObject() != null && mBestChannel == App.sInstance.getWlanIndexObject().get(App.sInstance.getCurChannel()).getChannel())
+            return true;
+        return false;
+    }
 }

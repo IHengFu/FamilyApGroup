@@ -15,6 +15,7 @@
     <uses-permission android:name="android.permission.WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 
     <application
         android:name=".App"
@@ -27,6 +28,16 @@
 
         <activity
             android:name=".ui.activity.StartActivity"
+            android:theme="@style/AppTheme.NoActionBar.FullScreem">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ui.activity.CopyOfStartActivity"
+            android:icon="@mipmap/ic_launcher"
+            android:label="假数据测试"
             android:theme="@style/AppTheme.NoActionBar.FullScreem">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -70,6 +81,10 @@
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".ui.activity.DeviceLocationDetailActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".ui.activity.ChannelOptimizeResultActivity"
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
 

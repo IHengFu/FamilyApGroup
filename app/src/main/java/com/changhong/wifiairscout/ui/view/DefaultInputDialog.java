@@ -21,6 +21,7 @@ public class DefaultInputDialog extends Dialog implements View.OnClickListener {
 
     private final EditText mEditText;
     private final TextView mTextTab;
+    private final TextView mTextTitle;
     private OnInputDialogCommitListener mListener;
 
     public DefaultInputDialog(@NonNull Context context) {
@@ -30,6 +31,7 @@ public class DefaultInputDialog extends Dialog implements View.OnClickListener {
         findViewById(R.id.btn_accept).setOnClickListener(this);
         findViewById(R.id.btn_cancle).setOnClickListener(this);
         mEditText = findViewById(R.id.et_input);
+        mTextTitle = findViewById(R.id.tv_title);
         mTextTab = findViewById(R.id.tv_tab);
     }
 
@@ -72,9 +74,24 @@ public class DefaultInputDialog extends Dialog implements View.OnClickListener {
 
     }
 
+    public void setMessage(CharSequence c) {
+        mEditText.setText(c);
+
+    }
+
     public void setHint(int resid) {
         mEditText.setHint(resid);
 
+    }
+
+    public void setTitle(CharSequence c) {
+        mTextTitle.setText(c);
+        mTextTitle.setVisibility(TextUtils.isEmpty(c) ? View.GONE : View.VISIBLE);
+    }
+
+    public void setTitle(int resid) {
+        mTextTitle.setText(resid);
+        mTextTitle.setVisibility(resid == 0 ? View.GONE : View.VISIBLE);
     }
 
     public void setTab(CharSequence c) {

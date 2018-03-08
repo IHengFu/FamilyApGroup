@@ -13,6 +13,7 @@
     </array>
     <array name="intensity">
         <item>powerful</item>
+        <item>medium</item>
         <item>weak</item>
     </array>
 

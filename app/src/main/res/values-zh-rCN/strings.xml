@@ -54,6 +54,9 @@
     <string name="request_send_complete">请求发送完成。</string>
     <string name="notice_programme_max_limit">方案个数已达最大数量，不能继续添加。</string>
     <string name="tab_input_channel_number">请输入信道号：</string>
+    <string name="notice_at_least_one_client">至少要有一个终端机</string>
+    <string name="username">用户名</string>
+    <string name="count_of_programme">方案总数</string>
     <!--channel condition-->
     <string name="no_data">无数据</string>
     <string name="start_scan">启动测试</string>
@@ -88,4 +91,6 @@
     <string name="action_test_speed">点击测速</string>
     <string name="notice_wait_for_test_speed">正在测试传输速度，请稍后……</string>
     <string name="notice_test_task_canceled">测速被取消.</string>
+    <!--ChannelOptimizeResult-->
+    <string name="cur_programme">当前方案</string>
 </resources>

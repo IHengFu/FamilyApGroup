@@ -9,7 +9,7 @@
         android:strokeColor="#65cdbd"
         android:strokeLineCap="round"
         android:strokeLineJoin="miter"
-        android:strokeWidth=".2" />
+        android:strokeWidth="1" />
 
     <path
         android:name="edge"
@@ -17,5 +17,5 @@
         android:strokeColor="#65cdbd"
         android:strokeLineCap="round"
         android:strokeLineJoin="miter"
-        android:strokeWidth=".5" />
+        android:strokeWidth="1.2" />
 </vector>
