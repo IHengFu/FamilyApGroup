@@ -73,4 +73,14 @@ public class BaseResponse {
 
         return sb.toString();
     }
+
+    protected String parseToIPv4(byte[] data, int offset) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 4; ++i) {
+            sb.append(String.format("%d", data[offset + i] & 0xff));
+            if (i != 3) sb.append('.');
+        }
+
+        return sb.toString();
+    }
 }

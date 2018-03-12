@@ -205,11 +205,10 @@ class StartService : Service() {
 //                    device.type = App.TYPE_DEVICE_PHONE
 //                } else
                 device.type = App.TYPE_DEVICE_CLIENT
-                device.channel = App.sInstance.wlanIndexObject[device.wlan_idx.toInt()].channel
             }
 
 
-            val wc = WifiDevice(App.TYPE_DEVICE_CONNECT, "127.00.00.1", "ff:ff:ff:ff:ff:ff", "中继器", App.sInstance.curChannel)
+            val wc = WifiDevice(App.TYPE_DEVICE_CONNECT, "127.00.00.1", "ff:ff:ff:ff:ff:ff", "中继器")
             gcr.devices.add(0, wc)
 
             EventBus.getDefault().postSticky(gcr)
@@ -269,7 +268,6 @@ class StartService : Service() {
             master.name = getString(R.string.wifi)
             master.rssi = App.MAX_RSSI
             master.type = App.TYPE_DEVICE_WIFI
-            App.sInstance.curChannel = master.channel
             App.sInstance.curWlanIdx = master.wlan_idx
             EventBus.getDefault().postSticky(response)
 

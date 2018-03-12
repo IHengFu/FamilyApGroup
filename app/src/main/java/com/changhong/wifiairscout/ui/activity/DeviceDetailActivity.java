@@ -16,10 +16,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.R;
+import com.changhong.wifiairscout.model.DualBandInfo;
 import com.changhong.wifiairscout.model.MessageData;
 import com.changhong.wifiairscout.model.MessageDataFactory;
 import com.changhong.wifiairscout.model.WifiDevice;
@@ -53,6 +55,9 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
     private GenericTask mTask;
     protected WifiDevice device;
 
+    private static final String DEFAULT_IMG_5G = "<5g/>";
+    private static final String DEFAULT_IMG_24G = "<2.4g/>";
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +79,7 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
 
         mTvIP = findViewById(R.id.tv_ip);
         mTvMac = findViewById(R.id.tv_mac);
+        mTvMac.setText(device.getMac());
         mTvCurChannal = findViewById(R.id.tv_current_channel);
 
 
@@ -83,6 +89,11 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
 
         mBtnSpeed = findViewById(R.id.btn_speed);
         mBtnSpeed.setOnClickListener(this);
+
+        ImageView imageView = findViewById(R.id.image);
+        Drawable drawable = getDrawable(App.RESID_WIFI_DEVICE[device.getType()]);
+        DrawableCompat.setTint(drawable, 0xff65cdbd);
+        imageView.setImageDrawable(drawable);
 
         EventBus.getDefault().register(this);
     }
@@ -127,6 +138,7 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
             for (WifiDevice wifiDevice : event.getDevices()) {
                 if (wifiDevice.equals(device)) {
                     device.eat(wifiDevice);
+                    device.setRssi(wifiDevice.getRssi());
                     reset();
                     break;
                 }
@@ -138,16 +150,30 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
 
         if (device != null) {
             mTvIP.setText(device.getIp());
-            mTvMac.setText(device.getMac());
-            mTvCurChannal.setText("" + device.getChannel());
-            if (device.getWlan_idx() == 0) {
-                SpannableString spanText = new SpannableString(" <img/>");
-                Drawable drawable = getDrawable(R.drawable.vector_5g);
-                drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
-                spanText.setSpan(new ImageSpan(drawable), 0, spanText.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
-                mTvCurChannal.append(spanText);
+
+
+            //当前信道
+            if (device.getType() == App.TYPE_DEVICE_WIFI) {
+                for (int i = 0; i < device.getArrayDualBandInfo().size(); i++) {
+                    DualBandInfo ifo = device.getArrayDualBandInfo().get(i);
+                    if (i == 0)
+                        mTvCurChannal.setText("" + App.sInstance.getWlanIndexObject().get(ifo.getWlan_idx()).getChannel());
+                    else
+                        mTvCurChannal.append("\n" + App.sInstance.getWlanIndexObject().get(ifo.getWlan_idx()).getChannel());
+                    if (ifo.getWlan_idx() == 0)
+                        doAddTextDrawable(mTvCurChannal, getDrawable(R.drawable.vector_5g));
+                    else
+                        doAddTextDrawable(mTvCurChannal, getDrawable(R.drawable.vector_24g));
+                }
+            } else {
+                mTvCurChannal.setText("" + App.sInstance.getWlanIndexObject().get(device.getWlan_idx()).getChannel());
+                if (device.getWlan_idx() == 0)
+                    doAddTextDrawable(mTvCurChannal, getDrawable(R.drawable.vector_5g));
+                else
+                    doAddTextDrawable(mTvCurChannal, getDrawable(R.drawable.vector_24g));
             }
 
+            //设备名称
             mTvDeviceName.setText(device.getName());
 
             mAnimSignalView.setVisibility(View.VISIBLE);
@@ -166,8 +192,9 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
                 float rate = getRate();
                 signalView.setProgress((int) rate * 100);
                 mAnimSignalView.setColor(getSignalColor(rate));
-
-                ((View) mBtnSpeed.getParent()).setVisibility(View.VISIBLE);
+                signalView.postInvalidate();
+                if (((View) mBtnSpeed.getParent()).getVisibility() != View.VISIBLE)
+                    ((View) mBtnSpeed.getParent()).setVisibility(View.VISIBLE);
             }
 
             getSupportActionBar().setTitle(R.string.title_device_detail);
@@ -196,6 +223,13 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
         if (device.getType() == App.TYPE_DEVICE_WIFI)
             rate = 1;
         return rate;
+    }
+
+    private void doAddTextDrawable(TextView view, Drawable drawable) {
+        SpannableString spanText = new SpannableString(DEFAULT_IMG_5G);
+        drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+        spanText.setSpan(new ImageSpan(drawable), 0, spanText.length(), Spanned.SPAN_INCLUSIVE_EXCLUSIVE);
+        view.append(spanText);
     }
 
     @Override
@@ -246,4 +280,6 @@ public class DeviceDetailActivity extends BaseActivtiy implements View.OnClickLi
         showToast(getString(R.string.notice_test_task_canceled));
         mTask = null;
     }
+
+
 }

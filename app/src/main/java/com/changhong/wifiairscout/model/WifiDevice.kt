@@ -4,50 +4,41 @@ import android.os.Parcel
 import android.os.Parcelable
 import com.changhong.wifiairscout.App
 import java.util.*
+import kotlin.collections.ArrayList
 
 /**
  * Created by fuheng on 2017/12/8.
  */
-class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: String?, var channel: Byte = -1) : Parcelable {
+class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: String?) : Parcelable {
     var rssi: Byte = Byte.MIN_VALUE
-    var cipher: Byte = -1//1:tkip; 2:aes; 3:mixed
 
     var dual_band: Byte = 0//	1	1:双频; 0:单频
-    var wlan_idx: Byte = 0//	1	无线radio索引
-    var Bound: Byte = 0//	1	0: 20MHz; 1: 40MHz; 2: 80MHz
-    var sideband: Byte = 0//	1	0: 高; 1: 低
-    var Ssid: String? = null//	32	无线名称
-    var encrypt: Byte = 0//	1	0:disabled; 1:wep; 2:wpa; 4:wpa2; 6:wp2_mixed; 7:wapi
-    var Key: ByteArray? = null//	64	密钥
+    var wlan_idx: Byte = 1//	1	无线radio索引
 
     var Bssid: String? = null
+
+    var arrayDualBandInfo: List<DualBandInfo>? = null
 
     constructor(parcel: Parcel) : this(
             parcel.readByte(),
             parcel.readString(),
             parcel.readString(),
-            parcel.readString(),
-            parcel.readByte()) {
+            parcel.readString()) {
         rssi = parcel.readByte()
-        cipher = parcel.readByte()
         dual_band = parcel.readByte()
         wlan_idx = parcel.readByte()
-        Bound = parcel.readByte()
-        sideband = parcel.readByte()
-        Ssid = parcel.readString()
-        encrypt = parcel.readByte()
-        Key = parcel.createByteArray()
         Bssid = parcel.readString()
+
+
+        arrayDualBandInfo = parcel.createTypedArrayList(DualBandInfo)
     }
 
 
-    constructor(r: Byte, s: String) : this(0.toByte(), null, s, null, -1) {
+    constructor(r: Byte, s: String) : this(0.toByte(), null, s, null) {
         rssi = r
     }
 
     companion object {
-        val ENCRYPT_TYPE = arrayOf("disabled", "wep", "wpa", "wpa2", "wp2_mixed", "wapi")
-        val CIPHER_TYPE = arrayOf("tkip", "aes", "mixed")
 
         fun toStringIp(ip: Int): String {
             var result = Integer.toString(ip.and(0xff))
@@ -112,14 +103,7 @@ class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: Str
         }
     }
 
-    fun getEncryptType() = ENCRYPT_TYPE[encrypt.toInt()]
-    fun getCipherName() = CIPHER_TYPE[cipher.toInt()]
-
-
     fun eat(d: WifiDevice) {
-        if (d.channel.toInt() != -1) {
-            this.channel = d.channel
-        }
 
         if (d.ip != null)
             this.ip = d.ip
@@ -147,27 +131,21 @@ class WifiDevice(var type: Byte, var ip: String?, val mac: String, var name: Str
     }
 
 
-    override fun toString(): String {
-        return "WifiDevice(type=$type, ip=$ip, mac='$mac', name=$name, channel=$channel, rssi=$rssi, cipher=$cipher, dual_band=$dual_band, wlan_idx=$wlan_idx, Bound=$Bound, sideband=$sideband, Ssid=$Ssid, encrypt=$encrypt, Key=${Arrays.toString(Key)})"
-    }
-
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeByte(type)
         parcel.writeString(ip)
         parcel.writeString(mac)
         parcel.writeString(name)
-        parcel.writeByte(channel)
         parcel.writeByte(rssi)
-        parcel.writeByte(cipher)
         parcel.writeByte(dual_band)
         parcel.writeByte(wlan_idx)
-        parcel.writeByte(Bound)
-        parcel.writeByte(sideband)
-        parcel.writeString(Ssid)
-        parcel.writeByte(encrypt)
-        parcel.writeByteArray(Key)
+
         parcel.writeString(Bssid)
+
+        parcel.writeTypedList(arrayDualBandInfo)
     }
 
-
+    override fun toString(): String {
+        return "WifiDevice(type=$type, ip=$ip, mac='$mac', name=$name, rssi=$rssi, dual_band=$dual_band, wlan_idx=$wlan_idx, Bssid=$Bssid, arrayDualBandInfo=$arrayDualBandInfo)"
+    }
 }

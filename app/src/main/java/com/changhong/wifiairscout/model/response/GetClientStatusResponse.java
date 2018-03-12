@@ -1,9 +1,9 @@
 package com.changhong.wifiairscout.model.response;
 
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-
+import com.changhong.wifiairscout.App;
 import com.changhong.wifiairscout.model.WifiDevice;
+
+import java.util.ArrayList;
 
 /**
  * 注册消息响应信息
@@ -37,7 +37,7 @@ public class GetClientStatusResponse extends BaseResponse {
         devices = new ArrayList<>();
         for (int i = 0; i < amount; ++i) {
             devices.add(getWifiDevice(data, index));
-            index += 6 + 2;
+            index += 6 + 2 + 37;
         }
     }
 
@@ -49,17 +49,30 @@ public class GetClientStatusResponse extends BaseResponse {
     private WifiDevice getWifiDevice(byte[] data, int offset) {
         StringBuilder sb = new StringBuilder();
         int index = 0;
-        for (int i = 0; i < 6; ++i) {
-            sb.append(String.format("%02x", data[offset + index++])).append(':');
-        }
-        sb.deleteCharAt(sb.length() - 1);
 
-        String mac = sb.toString();
+        String mac = parseToMacAddress(data, offset);
 
-        byte rssi = data[offset + 6];
-        boolean wlan_idx = data[offset + 7] == 0;//无线radio索引, 0: 5G; 1: 2.4G; 2: 2.4G和5G
+        index += 6;
 
-        return new WifiDevice(rssi, mac);
+        String name = getStringInData(data, offset + index, 32);
+
+        index += 32;
+
+        String IP = parseToIPv4(data, offset + index);
+        index += 4;
+
+        byte dual_band = data[offset + index++];
+
+        byte rssi = data[offset + index++];
+
+        byte wlan_idx = data[offset + index++];//无线radio索引, 0: 5G; 1: 2.4G; 2: 2.4G和5G
+
+        WifiDevice result = new WifiDevice(App.TYPE_DEVICE_CLIENT, IP, mac, name);
+        result.setRssi(rssi);
+        result.setWlan_idx(wlan_idx);
+        result.setDual_band(dual_band);
+
+        return result;
     }
 
     public ArrayList<WifiDevice> getDevices() {

@@ -72,7 +72,7 @@ public class GetClientResponse extends BaseResponse {
         ip = data[offset + index + 2] << 16 | ip;
         ip = data[offset + index + 3] << 24 | ip;
 
-        return new WifiDevice(App.TYPE_DEVICE_CLIENT, WifiDevice.Companion.toStringIp(ip), mac, name, (byte) 0);
+        return new WifiDevice(App.TYPE_DEVICE_CLIENT, WifiDevice.Companion.toStringIp(ip), mac, name);
     }
 
     public ArrayList<WifiDevice> getDevices() {

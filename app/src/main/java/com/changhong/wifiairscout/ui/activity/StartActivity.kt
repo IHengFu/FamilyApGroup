@@ -12,9 +12,11 @@ import android.widget.TextView
 import android.widget.Toast
 import com.changhong.wifiairscout.App
 import com.changhong.wifiairscout.R
+import com.changhong.wifiairscout.model.DualBandInfo
 import com.changhong.wifiairscout.model.MessageData
 import com.changhong.wifiairscout.model.MessageDataFactory
 import com.changhong.wifiairscout.model.WifiDevice
+import com.changhong.wifiairscout.model.response.GetMasterResponse
 import com.changhong.wifiairscout.model.response.RegisterResponse
 import com.changhong.wifiairscout.preferences.Preferences
 import com.changhong.wifiairscout.task.GenericTask
@@ -35,11 +37,14 @@ open class StartActivity : BaseActivtiy() {
     var mUdpTask: UDPTask? = null
 
     var alertDialog: AlertDialog? = null
+
     private var arrayDevice: ArrayList<WifiDevice>? = null
 
     private var mIsWaitForNextPage = false
 
     private var startTime: Long = System.currentTimeMillis()
+
+    private var mMaster: WifiDevice? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -56,6 +61,7 @@ open class StartActivity : BaseActivtiy() {
             showAlertDialogConnectWifi()
         } else
             if (App.sTest) {
+                mMaster = createTestWifiDevice()
                 Handler().postDelayed(Runnable { goNext() }, 2000)
             } else
                 startConnectMaster()
@@ -127,6 +133,7 @@ open class StartActivity : BaseActivtiy() {
 
     fun goNext() {
         val intent = Intent(this@StartActivity, MainActivity::class.java)
+        intent.putExtra(Intent.EXTRA_DATA_REMOVED, mMaster)
         startActivity(intent)
         finish()
     }
@@ -176,7 +183,6 @@ open class StartActivity : BaseActivtiy() {
                 else
                     App.sInstance.curWlanIdx = 1
                 App.sInstance.curChannel = rr.getCurrentWlanIdx(App.sInstance.curWlanIdx)
-//            startLoadDevice()
             }
         }
     }
@@ -189,5 +195,57 @@ open class StartActivity : BaseActivtiy() {
             }.create()
         alertDialog?.setButton(AlertDialog.BUTTON_NEGATIVE, getString(R.string.action_retry), listener)
         alertDialog?.show()
+    }
+
+    private fun startLoadMaster() {
+        val msg = MessageDataFactory.getMasterInfo(App.sInstance.masterMac)
+
+        UDPTask().execute(msg, mLoadMasterListener)
+    }
+
+
+    private val mLoadMasterListener = object : UDPTaskListner("获取Master信息……") {
+
+        override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
+            if (result != TaskResult.OK) {
+                showRetryDialog(object : DialogInterface.OnClickListener {
+                    override fun onClick(p0: DialogInterface?, p1: Int) {
+                        startLoadMaster()
+                        p0?.dismiss()
+                    }
+                })
+                return;
+            }
+
+            if (System.currentTimeMillis() - startTime > 2000)
+                goNext()
+            else
+                Handler().postDelayed(Runnable { goNext() }, 2000 - System.currentTimeMillis() + startTime)
+        }
+
+        override fun onProgressUpdate(task: GenericTask?, param: MessageData?) {
+            val response = GetMasterResponse(param?.msgBody)
+            val master = response.master
+            master.name = getString(R.string.wifi)
+            master.rssi = App.MAX_RSSI
+            master.type = App.TYPE_DEVICE_WIFI
+            mMaster = master
+            App.sInstance.curWlanIdx = master.wlan_idx
+        }
+    }
+
+    private fun createTestWifiDevice(): WifiDevice {//test
+        val dhcp = App.sInstance.dhcpInfo
+        val wifiinfo = App.sInstance.wifiInfo
+        val master = WifiDevice(App.TYPE_DEVICE_WIFI, WifiDevice.toStringIp(dhcp.ipAddress),
+                wifiinfo.bssid, getString(R.string.wifi))
+        master.rssi = 100.toByte()
+
+        val arrDualBInfo = ArrayList<DualBandInfo>()
+        arrDualBInfo.add(DualBandInfo(0, 44, 0, 0, "test1", 0, 0, null))
+        arrDualBInfo.add(DualBandInfo(1, 12, 0, 0, "test1", 0, 0, null))
+        master.dual_band = 1
+        master.arrayDualBandInfo = arrDualBInfo
+        return master
     }
 }

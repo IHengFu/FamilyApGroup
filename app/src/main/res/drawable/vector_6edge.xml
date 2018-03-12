@@ -18,9 +18,10 @@
         android:strokeLineJoin="miter"
         android:strokeWidth="3" />
 
+        <!--android:pathData="M17.46,4.64l42.3,44l-49,0l41.5,-44l-41.5,14.64l41,45l8,-45l-42,45l0,-59"-->
     <path
         android:name="edge"
-        android:pathData="M17.46,4.64l42.3,44l-49,0l41.5,-44l-41.5,14.64l41,45l8,-45l-42,45l0,-59"
+        android:pathData="M17.46,4.64l42.3,44l-40,15 l15,-58 l17,58 l-44,-15 l44,-43 l-42,14 l57,15 l-62,0 l57,-16 l-27,47 l-16,-60"
         android:strokeColor="#65cdbd"
         android:strokeLineCap="round"
         android:strokeLineJoin="miter"

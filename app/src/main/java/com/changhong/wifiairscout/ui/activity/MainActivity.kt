@@ -19,6 +19,7 @@ import com.changhong.wifiairscout.db.dao.ProgrammeDao
 import com.changhong.wifiairscout.db.data.DeviceLocation
 import com.changhong.wifiairscout.db.data.ProgrammeGroup
 import com.changhong.wifiairscout.interfaces.OnItemDragListener
+import com.changhong.wifiairscout.model.DualBandInfo
 import com.changhong.wifiairscout.model.MessageData
 import com.changhong.wifiairscout.model.MessageDataFactory
 import com.changhong.wifiairscout.model.WifiDevice
@@ -74,8 +75,11 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         setSupportActionBar(toolbar)
         toolbar.setNavigationIcon(R.mipmap.ic_setting)
         EventBus.getDefault().register(this)
+
+        mArrayDevices.add(intent.getParcelableExtra(Intent.EXTRA_DATA_REMOVED))
         if (!App.sTest) {
-            StartService.startService(this, StartService.ACTION_LOAD_MASTER)
+//            StartService.startService(this, StartService.ACTION_LOAD_MASTER)
+            StartService.startService(this, StartService.ACTION_LOAD_DEVICE_STATUS)
             showProgressDialog(getString(R.string.notice_download_data), false, null)
         } else {//test
             mArrayDevices.addAll(getDevices())
@@ -112,8 +116,6 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 //                    askForSaveProgramme()
                 }
             }
-
-
         })
 
 
@@ -231,7 +233,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
                 mac += String.format("%02x", (Math.random() * 0xff).toByte()).toUpperCase()
 
                 val d = WifiDevice(App.TYPE_DEVICE_CLIENT, WifiDevice.toStringIp((Math.random() * Integer.MAX_VALUE).toInt()),
-                        mac, getString(R.string.client) + i, 0)
+                        mac, getString(R.string.client) + i)
                 d.rssi = Math.min((Math.random() * 80 - 120).toInt(), App.MAX_RSSI.toInt()).toByte()
                 result.add(d)
             }
@@ -257,20 +259,23 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
                 }
 
                 result.add(0, WifiDevice(App.TYPE_DEVICE_PHONE, WifiDevice.toStringIp(wifiinfo.ipAddress), wifiinfo.macAddress,
-                        getString(R.string.my_phone), 0))
+                        getString(R.string.my_phone)))
                 result.get(0).rssi = wifiinfo.rssi.toByte()
 
-                val wc = WifiDevice(App.TYPE_DEVICE_CONNECT, "127.00.00.1", "ff:ff:ff:ff:ff:ff", "中继器", App.sInstance.curChannel);
+                val wc = WifiDevice(App.TYPE_DEVICE_CONNECT, "127.00.00.1", "ff:ff:ff:ff:ff:ff", "中继器")
                 result.add(0, wc)
 
-                val dhcp = App.sInstance.dhcpInfo
-                result.add(0, WifiDevice(App.TYPE_DEVICE_WIFI, WifiDevice.toStringIp(dhcp.ipAddress),
-                        wifiinfo.bssid, getString(R.string.wifi), 0))
-                result.get(0).rssi = 100.toByte()
-
-
+//                val dhcp = App.sInstance.dhcpInfo
+//                result.add(0, WifiDevice(App.TYPE_DEVICE_WIFI, WifiDevice.toStringIp(dhcp.ipAddress),
+//                        wifiinfo.bssid, getString(R.string.wifi)))
+//                result.get(0).rssi = 100.toByte()
+//
+//                val arrDualBInfo = ArrayList<DualBandInfo>()
+//                arrDualBInfo.add(DualBandInfo(0, 44, 0, 0, "test1", 0, 0, null))
+//                arrDualBInfo.add(DualBandInfo(1, 12, 0, 0, "test1", 0, 0, null))
+//                result.get(0).dual_band = 1
+//                result.get(0).arrayDualBandInfo = arrDualBInfo
             }
-            result.forEach { it.channel = App.sInstance.curChannel }
 
             return result
         }
@@ -301,10 +306,59 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
         }
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
-    fun onDataSynEvent(event: GetClientResponse) {
-        Log.e(javaClass.simpleName, "event---->" + event.devices)
+//    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
+//    fun onDataSynEvent(event: GetClientResponse) {
+//        Log.e(javaClass.simpleName, "event---->" + event.devices)
+//
+//        if (event.devices != null) {
+//            //clean client
+//            val listToDelete = ArrayList<WifiDevice>()
+//            mArrayDevices.forEach { device ->
+//                if (App.TYPE_DEVICE_CLIENT == device.type || App.TYPE_DEVICE_PHONE == device.type) {
+//                    var isContain = false
+//                    if (!event.devices.isEmpty()) {
+//                        for (device1 in event.devices) {
+//                            if (device1.equals(device)) {
+//                                isContain = true
+//                                device.eat(device1)
+//                                break
+//                            }
+//                        }
+//                    }
+//                    if (!isContain)
+//                        listToDelete.add(device)
+//                }
+//            }
+//            mArrayDevices.removeAll(listToDelete)
+//
+//            // check and add new
+//            val listToAdd = getMoreObject(event.devices, mArrayDevices)
+//            if (listToAdd != null && !listToAdd.isEmpty()) {
+//                mArrayDevices.addAll(listToAdd)
+//            }
+//
+//            layout_apartment.updataOfflineDevices(listToAdd, listToDelete)
+//
+//            deviceAdapter.notifyDataSetChanged()
+//        }
+//        StartService.startService(this, StartService.ACTION_LOAD_DEVICE_STATUS)
+//    }
 
+
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
+    fun onDataSynEvent(event: GetClientStatusResponse) {
+//        var isChanged = false
+//        if (event.devices != null)
+//            for (i in mArrayDevices) loop@ {
+//                for (j in event.devices) {
+//                    if (i.mac.equals(j.mac)) {
+//                        i.eat(j)
+//                        deviceAdapter.notifyDataSetChanged()
+//                        isChanged = true
+//                        break
+//                    }
+//                }
+//            }
         if (event.devices != null) {
             //clean client
             val listToDelete = ArrayList<WifiDevice>()
@@ -332,34 +386,16 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
                 mArrayDevices.addAll(listToAdd)
             }
 
-            layout_apartment.updataOfflineDevices(listToAdd, listToDelete);
+            layout_apartment.updataOfflineDevices(listToAdd, listToDelete)
 
             deviceAdapter.notifyDataSetChanged()
         }
-        StartService.startService(this, StartService.ACTION_LOAD_DEVICE_STATUS)
-    }
-
-
-    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
-    fun onDataSynEvent(event: GetClientStatusResponse) {
-        var isChanged = false
-        if (event.devices != null)
-            for (i in mArrayDevices) loop@ {
-                for (j in event.devices) {
-                    if (i.mac.equals(j.mac)) {
-                        i.eat(j)
-                        deviceAdapter.notifyDataSetChanged()
-                        isChanged = true
-                        break
-                    }
-                }
-            }
 
         for (device in mArrayDevices) {
             Log.e(javaClass.simpleName, "==>>>mac = ${device.mac} rssi = ${device.rssi}")
         }
-        if (isChanged)
-            layout_apartment.refresh()
+//        if (isChanged)
+        layout_apartment.refresh()
 
         if (isFirst) {
             hideProgressDialog()
@@ -385,7 +421,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
             layout_apartment.refresh()
             deviceAdapter.notifyDataSetChanged()
         }
-        StartService.startService(this, StartService.ACTION_LOAD_DEVICE)
+//        StartService.startService(this, StartService.ACTION_LOAD_DEVICE)
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
@@ -442,7 +478,7 @@ class MainActivity : BaseActivtiy(), ViewPager.OnPageChangeListener, View.OnClic
 
                         EventBus.getDefault().postSticky(response)
                     } else {
-                        StartService.startService(this@MainActivity, StartService.ACTION_LOAD_MASTER)
+                        StartService.startService(this@MainActivity, StartService.ACTION_LOAD_DEVICE_STATUS)
                     }
                 }
 

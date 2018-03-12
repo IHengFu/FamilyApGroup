@@ -395,7 +395,7 @@ public class ChannelConditionActivity extends BaseActivtiy implements View.OnCli
     };
 
     private boolean isInBestChannel() {
-        if (App.sInstance.getWlanIndexObject() != null && mBestChannel == App.sInstance.getWlanIndexObject().get(App.sInstance.getCurChannel()).getChannel())
+        if (App.sInstance.getWlanIndexObject() != null && mBestChannel == App.sInstance.getWlanIndexObject().get(App.sInstance.getCurWlanIdx()).getChannel())
             return true;
         return false;
     }

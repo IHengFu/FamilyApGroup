@@ -27,7 +27,7 @@
     <string name="my_phone">本机</string>
     <string name="client">设备</string>
     <!--startactivity-->
-    <string name="cannot_connect_master">服务器无法联通？</string>
+    <string name="cannot_connect_master">服务器无法连通？</string>
     <string name="notice_init">初始化……</string>
     <string name="notice_get_device">获取设备……</string>
     <string name="notice_get_device_status">获取设备状态……</string>

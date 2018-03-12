@@ -195,4 +195,41 @@ public class MessageDataFactory {
         return messageData;
     }
 
+    /**
+     * 5.11 添加mac白名单
+     */
+    public static final MessageData addMac2WhiteList(boolean is5G, String... macAddresses) {
+        String mac = App.sInstance.getWifiInfo().getMacAddress();
+        MessageData messageData = new MessageData(true, mac, false, true, System.currentTimeMillis());
+        messageData.setMsgId((short) 10);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(6 * macAddresses.length + 2);
+        baos.write(is5G ? 0 : 1);
+        baos.write(macAddresses.length);
+        for (int i = 0; i < macAddresses.length; i++) {
+            baos.write(WifiDevice.Companion.to6ByteMac(macAddresses[i]), 0, 6);
+        }
+        messageData.setMsgBody(baos.toByteArray());
+
+        return messageData;
+    }
+
+    /**
+     * 5.12 mesh组网
+     */
+    public static final MessageData meshNetGroup(boolean is5G, String... macAddresses) {
+        String mac = App.sInstance.getWifiInfo().getMacAddress();
+        MessageData messageData = new MessageData(true, mac, false, true, System.currentTimeMillis());
+        messageData.setMsgId((short) 11);
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream(6 * macAddresses.length + 2);
+        baos.write(is5G ? 0 : 1);
+        baos.write(macAddresses.length);
+        for (int i = 0; i < macAddresses.length; i++) {
+            baos.write(WifiDevice.Companion.to6ByteMac(macAddresses[i]), 0, 6);
+        }
+        messageData.setMsgBody(baos.toByteArray());
+
+        return messageData;
+    }
 }
