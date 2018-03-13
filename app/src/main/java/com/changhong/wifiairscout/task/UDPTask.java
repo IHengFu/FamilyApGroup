@@ -1,7 +1,9 @@
 package com.changhong.wifiairscout.task;
 
 import android.os.CountDownTimer;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.TextureView;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -73,9 +75,8 @@ public class UDPTask extends GenericTask implements MyCountDownTimerListener {
 
                 if (System.currentTimeMillis() - startTime > 30000) {
                     Log.e("耗时", Thread.currentThread().getName() + "  :  " + (System.currentTimeMillis() - startTime));
-                    throw new TimeoutException("通信超时");
+                    throw new TimeoutException("通信超时……");
                 }
-
                 byte[] data = receive(address, port);
                 Log.e("响应", CommUtils.toHexString(data));
                 if (data != null) {
@@ -113,7 +114,10 @@ public class UDPTask extends GenericTask implements MyCountDownTimerListener {
             return TaskResult.IO_ERROR;
         } catch (Exception e) {
             e.printStackTrace();
-            setException(new Exception("错误数据"));
+            if (TextUtils.isEmpty(e.getMessage()))
+                setException(new Exception("错误数据"));
+            else
+                setException(e);
             return TaskResult.FAILED;
         } finally {
             udpServer.close();
@@ -136,7 +140,7 @@ public class UDPTask extends GenericTask implements MyCountDownTimerListener {
     private synchronized byte[] receive(InetAddress addr, int port) throws IOException {
         byte[] buff = new byte[1024];
         DatagramPacket receivePacket = new DatagramPacket(buff, buff.length, addr, port);
-        udpServer.setSoTimeout(10000);
+        udpServer.setSoTimeout(15000);
         udpServer.receive(receivePacket);
         byte[] result = new byte[receivePacket.getLength()];
         System.arraycopy(buff, 0, result, 0, receivePacket.getLength());

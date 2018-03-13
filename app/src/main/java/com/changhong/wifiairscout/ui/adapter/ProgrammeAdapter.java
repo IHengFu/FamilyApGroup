@@ -181,9 +181,9 @@ public class ProgrammeAdapter extends BaseExpandableListAdapter {
     private int getIntensityColor(int rssi) {
         if (rssi <= limitValue)
             return TypeMap.COLOR_WEAK;
-        else if (rssi > (App.MAX_RSSI + limitValue) / 2)
+        else //if (rssi > (App.MAX_RSSI + limitValue) / 2)
             return TypeMap.COLOR_STRONG;
-        else
-            return TypeMap.COLOR_MEDIUM;
+//        else
+//            return TypeMap.COLOR_MEDIUM;
     }
 }

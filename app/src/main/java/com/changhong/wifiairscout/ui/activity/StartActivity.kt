@@ -160,10 +160,11 @@ open class StartActivity : BaseActivtiy() {
         object : UDPTaskListner(getString(R.string.notice_init)) {
             override fun onPostExecute(task: GenericTask?, result: TaskResult?) {
                 if (result == TaskResult.OK) {
-                    if (System.currentTimeMillis() - startTime > 2000)
-                        goNext()
-                    else
-                        Handler().postDelayed(Runnable { goNext() }, 2000 - System.currentTimeMillis() + startTime)
+//                    if (System.currentTimeMillis() - startTime > 2000)
+//                        goNext()
+//                    else
+//                        Handler().postDelayed(Runnable { goNext() }, 2000 - System.currentTimeMillis() + startTime)
+                    startLoadMaster()
                 } else if (task?.exception != null) {
                     Toast.makeText(this@StartActivity, task.exception?.message ?: task.exception?.javaClass?.simpleName, Toast.LENGTH_SHORT).show()
                     showAlertDialog()

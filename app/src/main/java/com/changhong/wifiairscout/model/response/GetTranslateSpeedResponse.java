@@ -45,19 +45,20 @@ public class GetTranslateSpeedResponse extends BaseResponse {
     }
 
     private DeviceRate getDeviceRate(byte[] data, int offset) {
-        StringBuilder sb = new StringBuilder();
-        int index = 0;
-        for (int i = 0; i < 6; ++i) {
-            sb.append(String.format("%02x", data[offset + index++])).append(':');
-        }
-        sb.deleteCharAt(sb.length() - 1);
+//        StringBuilder sb = new StringBuilder();
+        int index = offset;
+//        for (int i = 0; i < 6; ++i) {
+//            sb.append(String.format("%02x", data[offset + index++])).append(':');
+//        }
+//        sb.deleteCharAt(sb.length() - 1);
+
 
         DeviceRate dr = new DeviceRate();
-        dr.mac = sb.toString();
+        dr.mac = parseToMacAddress(data, index);
+        index += 6;
 
         for (int i = 0; i < 4; i++) {
-            long temp = data[offset + index + i] & 0xff;
-            dr.rate |= temp << (8 * i);
+            dr.rate = (dr.rate<<8)|(data[index + i] & 0xff);
         }
         return dr;
     }
@@ -84,15 +85,15 @@ public class GetTranslateSpeedResponse extends BaseResponse {
 
         public String getRateString() {
             if (rate >>> 10 == 0)
-                return String.format("%db/s", rate);
+                return String.format("%dB/s", rate);
 
             if (rate >>> 20 == 0)
-                return String.format("%.1fkb/s", rate / 1024f);
+                return String.format("%.1fkB/s", rate / 1024f);
 
             if (rate >>> 30 == 0)
-                return String.format("%.1fmb/s", (rate >>> 10) / 1024f);
+                return String.format("%.1fmB/s", (rate >>> 10) / 1024f);
 
-            return String.format("%.1fgb/s", (rate >>> 20) / 1024f);
+            return String.format("%.1fgB/s", (rate >>> 20) / 1024f);
         }
 
         @Override

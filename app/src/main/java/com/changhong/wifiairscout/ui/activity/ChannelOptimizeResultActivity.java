@@ -65,14 +65,14 @@ public class ChannelOptimizeResultActivity extends BaseActivtiy implements View.
             mExpandableListView.setEmptyView(textview);
         }
         CommUtils.transparencyBar(this);
-        if (App.sTest)
-            EventBus.getDefault().register(this);
+//        if (App.sTest)
+//            EventBus.getDefault().register(this);
     }
 
     @Override
     protected void onDestroy() {
-        if (App.sTest)
-            EventBus.getDefault().unregister(this);
+//        if (App.sTest)
+//            EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
 
@@ -108,16 +108,16 @@ public class ChannelOptimizeResultActivity extends BaseActivtiy implements View.
         }
 
         //添加当前
-        if (App.sTest) {
-            long groupid = System.currentTimeMillis();
-            ProgrammeGroup e = new ProgrammeGroup();
-            e.setName(getString(R.string.cur_programme));
-            e.setGroup(groupid);
-            e.setUserName(App.sInstance.getGuestName());
-            mArrayProgramme.add(e);
-
-            mArrayDeviceLocation.add(new ArrayList<DeviceLocation>());
-        }
+//        if (App.sTest) {
+//            long groupid = System.currentTimeMillis();
+//            ProgrammeGroup e = new ProgrammeGroup();
+//            e.setName(getString(R.string.cur_programme));
+//            e.setGroup(groupid);
+//            e.setUserName(App.sInstance.getGuestName());
+//            mArrayProgramme.add(e);
+//
+//            mArrayDeviceLocation.add(new ArrayList<DeviceLocation>());
+//        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true) //在ui线程执行
